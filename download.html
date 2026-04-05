@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lyrika - Download</title>
+    <style>
+        body { background: #0a0b0f; color: #e8e8ec; font-family: -apple-system, sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
+        .msg { text-align: center; }
+        .msg h1 { font-size: 2rem; background: linear-gradient(135deg, #2dd4bf, #a855f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .msg p { color: #888; margin-top: 8px; }
+    </style>
+</head>
+<body>
+    <div class="msg">
+        <h1>Lyrika</h1>
+        <p>Redirecting to Google Play...</p>
+    </div>
+    <script>
+    (function() {
+        var FARO_URL = "https://faro-collector-prod-eu-central-0.grafana.net/collect/765f7e7304e7903ee2a76f8ea0171c99";
+        var PLAY_URL = "https://play.google.com/store/apps/details?id=com.masoft.lyrika";
+
+        // Parse UTM params
+        var params = new URLSearchParams(window.location.search);
+        var source = params.get("utm_source") || "direct";
+        var medium = params.get("utm_medium") || "";
+        var campaign = params.get("utm_campaign") || "";
+
+        // Collect device info
+        var payload = {
+            events: [{
+                name: "download_click",
+                domain: "browser",
+                attributes: {
+                    source: source,
+                    medium: medium,
+                    campaign: campaign,
+                    referrer: document.referrer || "",
+                    user_agent: navigator.userAgent,
+                    language: navigator.language || "",
+                    screen: screen.width + "x" + screen.height,
+                    url: window.location.href
+                },
+                timestamp: new Date().toISOString()
+            }],
+            meta: {
+                app: { name: "Lyrika-Web", version: "1.0.0" },
+                sdk: { name: "custom", version: "1.0.0" },
+                browser: { name: navigator.userAgent }
+            }
+        };
+
+        // Send to Faro then redirect
+        var beacon = navigator.sendBeacon;
+        if (beacon) {
+            beacon.call(navigator, FARO_URL, JSON.stringify(payload));
+        } else {
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", FARO_URL, true);
+            xhr.setRequestHeader("Content-Type", "application/json");
+            xhr.send(JSON.stringify(payload));
+        }
+
+        // Redirect after brief delay to ensure beacon sends
+        setTimeout(function() {
+            window.location.href = PLAY_URL +
+                (source !== "direct" ? "&utm_source=" + source : "") +
+                (medium ? "&utm_medium=" + medium : "") +
+                (campaign ? "&utm_campaign=" + campaign : "");
+        }, 300);
+    })();
+    </script>
+</body>
+</html>
