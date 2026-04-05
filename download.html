@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lyrika - Download</title>
+    <script src="https://unpkg.com/@grafana/faro-web-sdk@2.2.4/dist/bundle/faro-web-sdk.iife.js"></script>
     <style>
         body { background: #0a0b0f; color: #e8e8ec; font-family: -apple-system, sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
         .msg { text-align: center; }
@@ -16,41 +17,39 @@
         <h1>Lyrika</h1>
         <p>Redirecting to Google Play...</p>
     </div>
-    <script type="module">
-        import { initializeFaro, getWebInstrumentations } from "https://cdn.jsdelivr.net/npm/@grafana/faro-web-sdk@2.2.4/+esm";
+    <script>
+        var PLAY_URL = "https://play.google.com/store/apps/details?id=com.masoft.lyrika";
+        var params = new URLSearchParams(window.location.search);
+        var source = params.get("utm_source") || "direct";
+        var medium = params.get("utm_medium") || "";
+        var campaign = params.get("utm_campaign") || "";
 
-        const PLAY_URL = "https://play.google.com/store/apps/details?id=com.masoft.lyrika";
-        const params = new URLSearchParams(window.location.search);
-        const source = params.get("utm_source") || "direct";
-        const medium = params.get("utm_medium") || "";
-        const campaign = params.get("utm_campaign") || "";
-
-        const faro = initializeFaro({
+        var faro = window.GrafanaFaroWebSdk.initializeFaro({
             url: "https://faro-collector-prod-eu-central-0.grafana.net/collect/32b6bb54b1e3901e7ece472b5e31910f",
             app: {
                 name: "Lyrika Installs",
                 version: "1.0.0",
                 environment: "production",
             },
-            instrumentations: [...getWebInstrumentations()],
+            instrumentations: window.GrafanaFaroWebSdk.getWebInstrumentations(),
         });
 
         faro.api.pushEvent("download_click", {
-            source,
-            medium,
-            campaign,
+            source: source,
+            medium: medium,
+            campaign: campaign,
             referrer: document.referrer || "",
             screen: screen.width + "x" + screen.height,
         });
 
-        setTimeout(() => {
-            const utm = new URLSearchParams();
-            if (source !== "direct") utm.set("utm_source", source);
-            if (medium) utm.set("utm_medium", medium);
-            if (campaign) utm.set("utm_campaign", campaign);
-            const utmStr = utm.toString();
-            window.location.href = PLAY_URL + (utmStr ? "&" + utmStr : "");
-        }, 500);
+        // Wait longer to ensure the event is sent before redirecting
+        setTimeout(function() {
+            var utm = [];
+            if (source !== "direct") utm.push("utm_source=" + source);
+            if (medium) utm.push("utm_medium=" + medium);
+            if (campaign) utm.push("utm_campaign=" + campaign);
+            window.location.href = PLAY_URL + (utm.length ? "&" + utm.join("&") : "");
+        }, 1500);
     </script>
 </body>
 </html>
