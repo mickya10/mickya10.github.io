@@ -39,47 +39,42 @@
                 }
             } catch (e) {}
 
-            // Initialize Faro for auto web vitals
-            window.GrafanaFaroWebSdk.initializeFaro({
+            // Intercept fetch to detect when Faro sends data
+            var faroSent = false;
+            var originalFetch = window.fetch;
+            window.fetch = function(url) {
+                if (typeof url === "string" && url.includes("faro-collector")) {
+                    return originalFetch.apply(this, arguments).then(function(res) {
+                        faroSent = true;
+                        return res;
+                    });
+                }
+                return originalFetch.apply(this, arguments);
+            };
+
+            var faro = window.GrafanaFaroWebSdk.initializeFaro({
                 url: FARO_URL,
                 app: { name: "Lyrika Installs", version: "1.0.0", environment: "production" },
                 instrumentations: window.GrafanaFaroWebSdk.getWebInstrumentations(),
             });
 
-            // Send event directly via fetch and await response
-            try {
-                await fetch(FARO_URL, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        events: [{
-                            name: "download_click",
-                            timestamp: new Date().toISOString(),
-                            attributes: {
-                                source: source,
-                                medium: medium,
-                                campaign: campaign,
-                                referrer: document.referrer || "",
-                                screen: screen.width + "x" + screen.height,
-                                device: isMobile ? "Mobile" : "Desktop",
-                                country: country,
-                                city: city,
-                            }
-                        }],
-                        meta: {
-                            sdk: { name: "faro-web-sdk", version: "2.2.4" },
-                            app: { name: "Lyrika Installs", version: "1.0.0", environment: "production" },
-                            browser: {
-                                name: navigator.userAgent,
-                                os: navigator.platform,
-                                mobile: isMobile
-                            },
-                            page: { url: window.location.href }
-                        }
-                    }),
-                    signal: AbortSignal.timeout(3000)
-                });
-            } catch (e) {}
+            faro.api.pushEvent("download_click", {
+                source: source,
+                medium: medium,
+                campaign: campaign,
+                referrer: document.referrer || "",
+                screen: screen.width + "x" + screen.height,
+                device: isMobile ? "Mobile" : "Desktop",
+                country: country,
+                city: city,
+            });
+
+            // Wait until Faro actually sends, or timeout after 3s
+            var waited = 0;
+            while (!faroSent && waited < 3000) {
+                await new Promise(function(r) { setTimeout(r, 100); });
+                waited += 100;
+            }
 
             // Redirect to Play Store
             var utm = [];
