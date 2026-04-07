@@ -477,9 +477,9 @@
     {
       "title": "Redirect Funnel",
       "description": "Page Load \u2192 Attempt \u2192 Success / Fallback",
-      "type": "stat",
+      "type": "bargauge",
       "gridPos": {
-        "h": 4,
+        "h": 8,
         "w": 24,
         "x": 0,
         "y": 31
@@ -524,6 +524,15 @@
         "defaults": {
           "color": {
             "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
           }
         },
         "overrides": [
@@ -536,6 +545,13 @@
               {
                 "id": "displayName",
                 "value": "1. Page Load"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
               }
             ]
           },
@@ -548,6 +564,13 @@
               {
                 "id": "displayName",
                 "value": "2. Intent (iframe)"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
               }
             ]
           },
@@ -560,6 +583,13 @@
               {
                 "id": "displayName",
                 "value": "3. Intent Success"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "purple",
+                  "mode": "fixed"
+                }
               }
             ]
           },
@@ -572,6 +602,13 @@
               {
                 "id": "displayName",
                 "value": "4. Web Fallback"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
               }
             ]
           },
@@ -584,6 +621,13 @@
               {
                 "id": "displayName",
                 "value": "5. Button Shown"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
               }
             ]
           },
@@ -596,6 +640,13 @@
               {
                 "id": "displayName",
                 "value": "6. Manual Click"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "yellow",
+                  "mode": "fixed"
+                }
               }
             ]
           }
@@ -607,9 +658,14 @@
             "lastNotNull"
           ]
         },
-        "colorMode": "value",
-        "graphMode": "none",
-        "orientation": "horizontal"
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "showUnfilled": true,
+        "minVizWidth": 0,
+        "minVizHeight": 10,
+        "text": {
+          "valueSize": 20
+        }
       }
     },
     {
