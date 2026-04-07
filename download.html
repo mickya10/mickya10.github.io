@@ -119,46 +119,58 @@
             // --- Track page load ---
             await trackAndWait("download_page_loaded", baseAttrs);
 
-            // --- Redirect via window.open (keeps this page alive for tracking) ---
-            await trackAndWait("redirect_fired", baseAttrs);
-
+            // --- Redirect ---
             var redirectWorked = false;
 
-            // Listen for visibility change (means browser switched to Play Store)
             document.addEventListener("visibilitychange", function() {
                 if (document.hidden) redirectWorked = true;
             });
 
-            // Open Play Store in new window/tab
-            window.open(playUrl, "_blank");
+            if (isAndroid) {
+                // Step 1: Try market:// (opens Play Store app directly)
+                var marketUrl = "market://details?id=" + PACKAGE + utmStr;
+                await trackAndWait("redirect_fired", Object.assign({}, baseAttrs, { method: "market" }));
+                window.location.href = marketUrl;
 
-            // Wait 3s to check if it worked
-            await new Promise(function(r) { setTimeout(r, 3000); });
+                await new Promise(function(r) { setTimeout(r, 2000); });
 
-            if (redirectWorked) {
-                await trackAndWait("redirect_success", baseAttrs);
-            } else {
-                // User is still here — try location.href as fallback
-                await trackAndWait("redirect_fallback_location", baseAttrs);
+                if (redirectWorked) {
+                    await trackAndWait("redirect_success", Object.assign({}, baseAttrs, { method: "market" }));
+                    return;
+                }
+
+                // Step 2: market:// didn't work, try Play Store web URL
+                await trackAndWait("redirect_fired", Object.assign({}, baseAttrs, { method: "play_store_web" }));
                 window.location.href = playUrl;
 
-                // Wait another 3s
                 await new Promise(function(r) { setTimeout(r, 3000); });
 
-                if (!document.hidden) {
-                    // Still here — show manual button
-                    await trackAndWait("redirect_button_shown", baseAttrs);
-                    var btn = document.getElementById("fallback");
-                    btn.href = playUrl;
-                    btn.style.display = "inline-block";
-                    btn.addEventListener("click", function() {
-                        trackAndWait("redirect_manual_click", baseAttrs);
-                    });
-                    document.getElementById("status").textContent = "Tap the button below to open Google Play";
-                } else {
-                    await trackAndWait("redirect_success", Object.assign({}, baseAttrs, { method: "location_href" }));
+                if (redirectWorked) {
+                    await trackAndWait("redirect_success", Object.assign({}, baseAttrs, { method: "play_store_web" }));
+                    return;
+                }
+            } else {
+                // Non-Android: go to Play Store web
+                await trackAndWait("redirect_fired", Object.assign({}, baseAttrs, { method: "play_store_web" }));
+                window.location.href = playUrl;
+
+                await new Promise(function(r) { setTimeout(r, 3000); });
+
+                if (redirectWorked) {
+                    await trackAndWait("redirect_success", Object.assign({}, baseAttrs, { method: "play_store_web" }));
+                    return;
                 }
             }
+
+            // Step 3: Still here — show manual button
+            await trackAndWait("redirect_button_shown", baseAttrs);
+            var btn = document.getElementById("fallback");
+            btn.href = playUrl;
+            btn.style.display = "inline-block";
+            btn.addEventListener("click", function() {
+                trackAndWait("redirect_manual_click", baseAttrs);
+            });
+            document.getElementById("status").textContent = "Tap the button below to open Google Play";
         })();
     </script>
 </body>
