@@ -37,8 +37,7 @@
             if (source !== "direct") utm.push("utm_source=" + source);
             if (medium) utm.push("utm_medium=" + medium);
             if (campaign) utm.push("utm_campaign=" + campaign);
-            var utmStr = utm.length ? "&" + utm.join("&") : "";
-            var playUrl = PLAY_WEB + utmStr;
+            var playUrl = PLAY_WEB + (utm.length ? "&" + utm.join("&") : "");
 
             // --- Init Faro ---
             var faro;
@@ -75,40 +74,29 @@
                 });
             }
 
-            // --- Geo lookup (try multiple services) ---
-            var country = "unknown";
-            var city = "";
-            var geoService = "none";
+            // --- Geo lookup ---
+            var country = "unknown", city = "", geoService = "none";
 
             try {
                 var geo = await fetch("http://ip-api.com/json/?fields=status,country,city", { signal: AbortSignal.timeout(3000) });
-                if (geo.ok) {
-                    var data = await geo.json();
-                    if (data.status === "success") { country = data.country || "unknown"; city = data.city || ""; geoService = "ip-api"; }
-                }
+                if (geo.ok) { var d = await geo.json(); if (d.status === "success") { country = d.country || "unknown"; city = d.city || ""; geoService = "ip-api"; } }
             } catch(e) {}
 
             if (country === "unknown") {
                 try {
                     var geo2 = await fetch("https://ipapi.co/json/", { signal: AbortSignal.timeout(3000) });
-                    if (geo2.ok) {
-                        var data2 = await geo2.json();
-                        if (!data2.error) { country = data2.country_name || data2.country_code || "unknown"; city = data2.city || ""; geoService = "ipapi.co"; }
-                    }
+                    if (geo2.ok) { var d2 = await geo2.json(); if (!d2.error) { country = d2.country_name || d2.country_code || "unknown"; city = d2.city || ""; geoService = "ipapi.co"; } }
                 } catch(e) {}
             }
 
             if (country === "unknown") {
                 try {
                     var geo3 = await fetch("https://ipinfo.io/json", { signal: AbortSignal.timeout(3000) });
-                    if (geo3.ok) {
-                        var data3 = await geo3.json();
-                        country = data3.country || "unknown"; city = data3.city || ""; geoService = "ipinfo.io";
-                    }
+                    if (geo3.ok) { var d3 = await geo3.json(); country = d3.country || "unknown"; city = d3.city || ""; geoService = "ipinfo.io"; }
                 } catch(e) {}
             }
 
-            var baseAttrs = {
+            var attrs = {
                 source: source, medium: medium, campaign: campaign,
                 referrer: document.referrer || "",
                 device: isMobile ? "Mobile" : "Desktop",
@@ -116,61 +104,23 @@
                 country: country, city: city, geo_service: geoService,
             };
 
-            // --- Track page load ---
-            await trackAndWait("download_page_loaded", baseAttrs);
+            // --- Track and redirect ---
+            await trackAndWait("download_redirect", attrs);
 
-            // --- Redirect ---
-            var redirectWorked = false;
+            // Go to Play Store
+            window.location.href = playUrl;
 
-            document.addEventListener("visibilitychange", function() {
-                if (document.hidden) redirectWorked = true;
-            });
-
-            if (isAndroid) {
-                // Step 1: Try intent:// (opens Play Store app without dialog on most devices)
-                var intentUrl = "intent://details?id=" + PACKAGE + utmStr + "#Intent;scheme=market;package=com.android.vending;end";
-                await trackAndWait("redirect_fired", Object.assign({}, baseAttrs, { method: "intent" }));
-                window.location.href = intentUrl;
-
-                await new Promise(function(r) { setTimeout(r, 2000); });
-
-                if (redirectWorked) {
-                    await trackAndWait("redirect_success", Object.assign({}, baseAttrs, { method: "market" }));
-                    return;
+            // If still here after 4s, show manual button
+            setTimeout(async function() {
+                if (!document.hidden) {
+                    await trackAndWait("redirect_button_shown", attrs);
+                    var btn = document.getElementById("fallback");
+                    btn.href = playUrl;
+                    btn.style.display = "inline-block";
+                    btn.addEventListener("click", function() { trackAndWait("redirect_manual_click", attrs); });
+                    document.getElementById("status").textContent = "Tap the button below to open Google Play";
                 }
-
-                // Step 2: market:// didn't work, try Play Store web URL
-                await trackAndWait("redirect_fired", Object.assign({}, baseAttrs, { method: "play_store_web" }));
-                window.location.href = playUrl;
-
-                await new Promise(function(r) { setTimeout(r, 3000); });
-
-                if (redirectWorked) {
-                    await trackAndWait("redirect_success", Object.assign({}, baseAttrs, { method: "play_store_web" }));
-                    return;
-                }
-            } else {
-                // Non-Android: go to Play Store web
-                await trackAndWait("redirect_fired", Object.assign({}, baseAttrs, { method: "play_store_web" }));
-                window.location.href = playUrl;
-
-                await new Promise(function(r) { setTimeout(r, 3000); });
-
-                if (redirectWorked) {
-                    await trackAndWait("redirect_success", Object.assign({}, baseAttrs, { method: "play_store_web" }));
-                    return;
-                }
-            }
-
-            // Step 3: Still here — show manual button
-            await trackAndWait("redirect_button_shown", baseAttrs);
-            var btn = document.getElementById("fallback");
-            btn.href = playUrl;
-            btn.style.display = "inline-block";
-            btn.addEventListener("click", function() {
-                trackAndWait("redirect_manual_click", baseAttrs);
-            });
-            document.getElementById("status").textContent = "Tap the button below to open Google Play";
+            }, 4000);
         })();
     </script>
 </body>
