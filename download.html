@@ -127,10 +127,10 @@
             });
 
             if (isAndroid) {
-                // Step 1: Try market:// (opens Play Store app directly)
-                var marketUrl = "market://details?id=" + PACKAGE + utmStr;
-                await trackAndWait("redirect_fired", Object.assign({}, baseAttrs, { method: "market" }));
-                window.location.href = marketUrl;
+                // Step 1: Try intent:// (opens Play Store app without dialog on most devices)
+                var intentUrl = "intent://details?id=" + PACKAGE + utmStr + "#Intent;scheme=market;package=com.android.vending;end";
+                await trackAndWait("redirect_fired", Object.assign({}, baseAttrs, { method: "intent" }));
+                window.location.href = intentUrl;
 
                 await new Promise(function(r) { setTimeout(r, 2000); });
 
