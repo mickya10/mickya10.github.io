@@ -40,59 +40,56 @@
             var playUrl = PLAY_WEB + (utm.length ? "&" + utm.join("&") : "");
 
             // --- Init Faro ---
-            var faro;
+            var faro = null;
             try {
                 faro = window.GrafanaFaroWebSdk.initializeFaro({
                     url: FARO_URL,
                     app: { name: "Lyrika Installs", version: "2.1.0", environment: "production" },
                 });
-            } catch(e) { faro = null; }
+            } catch(e) {}
 
-            // Helper: push event and wait for send
-            function trackAndWait(name, attrs) {
-                if (!faro) return Promise.resolve();
-                faro.api.pushEvent(name, attrs);
-                return new Promise(function(resolve) {
-                    var sent = false;
-                    var origFetch = window.fetch;
-                    window.fetch = function(url) {
-                        var result = origFetch.apply(this, arguments);
-                        if (typeof url === "string" && url.includes("faro-collector")) {
-                            result.then(function() { sent = true; }).catch(function() { sent = true; });
-                        }
-                        return result;
-                    };
-                    var waited = 0;
-                    var interval = setInterval(function() {
-                        waited += 50;
-                        if (sent || waited >= 3000) {
-                            clearInterval(interval);
-                            window.fetch = origFetch;
-                            resolve();
-                        }
-                    }, 50);
-                });
+            // Helper: send event via direct fetch to Faro collector (bypass SDK batching)
+            function sendEvent(name, attrs) {
+                var payload = {
+                    events: [{
+                        name: name,
+                        domain: "browser",
+                        attributes: attrs || {},
+                        timestamp: new Date().toISOString()
+                    }],
+                    meta: {
+                        app: { name: "Lyrika Installs", version: "2.1.0", environment: "production" },
+                        browser: { name: navigator.userAgent.substring(0, 100) },
+                        page: { url: window.location.href }
+                    }
+                };
+                // Use sendBeacon for reliability (survives page navigation)
+                if (navigator.sendBeacon) {
+                    navigator.sendBeacon(FARO_URL, JSON.stringify(payload));
+                } else {
+                    // Fallback: sync XHR
+                    var xhr = new XMLHttpRequest();
+                    xhr.open("POST", FARO_URL, false); // sync
+                    xhr.setRequestHeader("Content-Type", "application/json");
+                    xhr.send(JSON.stringify(payload));
+                }
             }
 
-            // --- Geo lookup ---
+            // --- Geo lookup (HTTPS only) ---
             var country = "unknown", city = "", geoService = "none";
 
             try {
-                var geo = await fetch("http://ip-api.com/json/?fields=status,country,city", { signal: AbortSignal.timeout(3000) });
-                if (geo.ok) { var d = await geo.json(); if (d.status === "success") { country = d.country || "unknown"; city = d.city || ""; geoService = "ip-api"; } }
+                var geo = await fetch("https://ipapi.co/json/", { signal: AbortSignal.timeout(3000) });
+                if (geo.ok) {
+                    var d = await geo.json();
+                    if (!d.error) { country = d.country_name || d.country_code || "unknown"; city = d.city || ""; geoService = "ipapi.co"; }
+                }
             } catch(e) {}
 
             if (country === "unknown") {
                 try {
-                    var geo2 = await fetch("https://ipapi.co/json/", { signal: AbortSignal.timeout(3000) });
-                    if (geo2.ok) { var d2 = await geo2.json(); if (!d2.error) { country = d2.country_name || d2.country_code || "unknown"; city = d2.city || ""; geoService = "ipapi.co"; } }
-                } catch(e) {}
-            }
-
-            if (country === "unknown") {
-                try {
-                    var geo3 = await fetch("https://ipinfo.io/json", { signal: AbortSignal.timeout(3000) });
-                    if (geo3.ok) { var d3 = await geo3.json(); country = d3.country || "unknown"; city = d3.city || ""; geoService = "ipinfo.io"; }
+                    var geo2 = await fetch("https://ipinfo.io/json", { signal: AbortSignal.timeout(3000) });
+                    if (geo2.ok) { var d2 = await geo2.json(); country = d2.country || "unknown"; city = d2.city || ""; geoService = "ipinfo.io"; }
                 } catch(e) {}
             }
 
@@ -104,20 +101,28 @@
                 country: country, city: city, geo_service: geoService,
             };
 
-            // --- Track and redirect ---
-            await trackAndWait("download_redirect", attrs);
+            // --- Send tracking via sendBeacon (reliable, survives navigation) ---
+            sendEvent("download_redirect", attrs);
 
-            // Go to Play Store
+            // Also push to Faro SDK for consistency
+            if (faro) {
+                try { faro.api.pushEvent("download_redirect", attrs); } catch(e) {}
+            }
+
+            // Small delay to let sendBeacon flush
+            await new Promise(function(r) { setTimeout(r, 500); });
+
+            // --- Redirect to Play Store ---
             window.location.href = playUrl;
 
             // If still here after 4s, show manual button
-            setTimeout(async function() {
+            setTimeout(function() {
                 if (!document.hidden) {
-                    await trackAndWait("redirect_button_shown", attrs);
+                    sendEvent("redirect_button_shown", attrs);
                     var btn = document.getElementById("fallback");
                     btn.href = playUrl;
                     btn.style.display = "inline-block";
-                    btn.addEventListener("click", function() { trackAndWait("redirect_manual_click", attrs); });
+                    btn.addEventListener("click", function() { sendEvent("redirect_manual_click", attrs); });
                     document.getElementById("status").textContent = "Tap the button below to open Google Play";
                 }
             }, 4000);
