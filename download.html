@@ -33,33 +33,27 @@
             var isMobile = /Mobile|Android|iPhone|iPad/.test(navigator.userAgent);
             var isAndroid = /Android/.test(navigator.userAgent);
 
-            // Build UTM suffix
             var utm = [];
             if (source !== "direct") utm.push("utm_source=" + source);
             if (medium) utm.push("utm_medium=" + medium);
             if (campaign) utm.push("utm_campaign=" + campaign);
             var utmStr = utm.length ? "&" + utm.join("&") : "";
             var playUrl = PLAY_WEB + utmStr;
-            var marketUrl = "market://details?id=" + PACKAGE + utmStr;
 
             // --- Init Faro ---
             var faro;
             try {
                 faro = window.GrafanaFaroWebSdk.initializeFaro({
                     url: FARO_URL,
-                    app: { name: "Lyrika Installs", version: "2.0.0", environment: "production" },
+                    app: { name: "Lyrika Installs", version: "2.1.0", environment: "production" },
                 });
-            } catch(e) {
-                faro = null;
-            }
+            } catch(e) { faro = null; }
 
-            // Helper: push event and wait for it to be sent
+            // Helper: push event and wait for send
             function trackAndWait(name, attrs) {
                 if (!faro) return Promise.resolve();
                 faro.api.pushEvent(name, attrs);
-                // Wait for Faro's internal batch to flush
                 return new Promise(function(resolve) {
-                    // Intercept fetch to detect when Faro sends
                     var sent = false;
                     var origFetch = window.fetch;
                     window.fetch = function(url) {
@@ -69,7 +63,6 @@
                         }
                         return result;
                     };
-                    // Poll until sent or timeout
                     var waited = 0;
                     var interval = setInterval(function() {
                         waited += 50;
@@ -87,128 +80,84 @@
             var city = "";
             var geoService = "none";
 
-            // Try ip-api.com first (no rate limit for non-commercial, returns JSON)
             try {
                 var geo = await fetch("http://ip-api.com/json/?fields=status,country,city", { signal: AbortSignal.timeout(3000) });
                 if (geo.ok) {
                     var data = await geo.json();
-                    if (data.status === "success") {
-                        country = data.country || "unknown";
-                        city = data.city || "";
-                        geoService = "ip-api";
-                    }
+                    if (data.status === "success") { country = data.country || "unknown"; city = data.city || ""; geoService = "ip-api"; }
                 }
             } catch(e) {}
 
-            // Fallback to ipapi.co if first failed
             if (country === "unknown") {
                 try {
                     var geo2 = await fetch("https://ipapi.co/json/", { signal: AbortSignal.timeout(3000) });
                     if (geo2.ok) {
                         var data2 = await geo2.json();
-                        if (!data2.error) {
-                            country = data2.country_name || data2.country_code || "unknown";
-                            city = data2.city || "";
-                            geoService = "ipapi.co";
-                        }
+                        if (!data2.error) { country = data2.country_name || data2.country_code || "unknown"; city = data2.city || ""; geoService = "ipapi.co"; }
                     }
                 } catch(e) {}
             }
 
-            // Second fallback: ipinfo.io
             if (country === "unknown") {
                 try {
                     var geo3 = await fetch("https://ipinfo.io/json", { signal: AbortSignal.timeout(3000) });
                     if (geo3.ok) {
                         var data3 = await geo3.json();
-                        country = data3.country || "unknown";
-                        city = data3.city || "";
-                        geoService = "ipinfo.io";
+                        country = data3.country || "unknown"; city = data3.city || ""; geoService = "ipinfo.io";
                     }
                 } catch(e) {}
             }
 
             var baseAttrs = {
-                source: source,
-                medium: medium,
-                campaign: campaign,
+                source: source, medium: medium, campaign: campaign,
                 referrer: document.referrer || "",
                 device: isMobile ? "Mobile" : "Desktop",
                 platform: isAndroid ? "android" : (isMobile ? "ios" : "desktop"),
-                country: country,
-                city: city,
-                geo_service: geoService,
-                user_agent: navigator.userAgent.substring(0, 200),
+                country: country, city: city, geo_service: geoService,
             };
 
             // --- Track page load ---
             await trackAndWait("download_page_loaded", baseAttrs);
 
-            // --- Redirect ---
-            if (isAndroid) {
-                // Step 1: Try market:// intent via iframe
-                await trackAndWait("redirect_attempt", Object.assign({}, baseAttrs, { method: "market_intent_iframe" }));
+            // --- Redirect via window.open (keeps this page alive for tracking) ---
+            await trackAndWait("redirect_fired", baseAttrs);
 
-                var intentOpened = false;
-                var iframe = document.createElement("iframe");
-                iframe.style.display = "none";
-                iframe.src = marketUrl;
-                document.body.appendChild(iframe);
+            var redirectWorked = false;
 
-                // Listen for page visibility change (means Play Store opened)
-                var visibilityHandler = function() {
-                    if (document.hidden) {
-                        intentOpened = true;
-                    }
-                };
-                document.addEventListener("visibilitychange", visibilityHandler);
+            // Listen for visibility change (means browser switched to Play Store)
+            document.addEventListener("visibilitychange", function() {
+                if (document.hidden) redirectWorked = true;
+            });
 
-                // Wait 2s to see if intent opened
-                await new Promise(function(r) { setTimeout(r, 2000); });
-                document.removeEventListener("visibilitychange", visibilityHandler);
+            // Open Play Store in new window/tab
+            window.open(playUrl, "_blank");
 
-                if (intentOpened) {
-                    await trackAndWait("redirect_success", Object.assign({}, baseAttrs, { method: "market_intent_iframe" }));
-                    return;
-                }
+            // Wait 3s to check if it worked
+            await new Promise(function(r) { setTimeout(r, 3000); });
 
-                // Step 2: Try market:// via window.location
-                await trackAndWait("redirect_attempt", Object.assign({}, baseAttrs, { method: "market_intent_location" }));
-                window.location.href = marketUrl;
-
-                await new Promise(function(r) { setTimeout(r, 2000); });
-
-                // If we're still here, intent didn't work
-                // Step 3: Redirect to Play Store web
-                await trackAndWait("redirect_attempt", Object.assign({}, baseAttrs, { method: "play_store_web" }));
-                window.location.href = playUrl;
-
-                // Step 4: Show manual button as last resort
-                await new Promise(function(r) { setTimeout(r, 2000); });
-                await trackAndWait("redirect_fallback_button_shown", baseAttrs);
-                var btn = document.getElementById("fallback");
-                btn.href = playUrl;
-                btn.style.display = "inline-block";
-                btn.addEventListener("click", function() {
-                    trackAndWait("redirect_manual_click", baseAttrs);
-                });
-                document.getElementById("status").textContent = "Tap the button below to open Google Play";
-
+            if (redirectWorked) {
+                await trackAndWait("redirect_success", baseAttrs);
             } else {
-                // Non-Android: go to Play Store web
-                await trackAndWait("redirect_attempt", Object.assign({}, baseAttrs, { method: "play_store_web_direct" }));
+                // User is still here — try location.href as fallback
+                await trackAndWait("redirect_fallback_location", baseAttrs);
                 window.location.href = playUrl;
 
-                // Show button fallback after 3s
+                // Wait another 3s
                 await new Promise(function(r) { setTimeout(r, 3000); });
-                await trackAndWait("redirect_fallback_button_shown", baseAttrs);
-                var btn2 = document.getElementById("fallback");
-                btn2.href = playUrl;
-                btn2.style.display = "inline-block";
-                btn2.addEventListener("click", function() {
-                    trackAndWait("redirect_manual_click", baseAttrs);
-                });
-                document.getElementById("status").textContent = "Tap the button below to open Google Play";
+
+                if (!document.hidden) {
+                    // Still here — show manual button
+                    await trackAndWait("redirect_button_shown", baseAttrs);
+                    var btn = document.getElementById("fallback");
+                    btn.href = playUrl;
+                    btn.style.display = "inline-block";
+                    btn.addEventListener("click", function() {
+                        trackAndWait("redirect_manual_click", baseAttrs);
+                    });
+                    document.getElementById("status").textContent = "Tap the button below to open Google Play";
+                } else {
+                    await trackAndWait("redirect_success", Object.assign({}, baseAttrs, { method: "location_href" }));
+                }
             }
         })();
     </script>

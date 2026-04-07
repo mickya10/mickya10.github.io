@@ -71,7 +71,7 @@
       },
       "targets": [
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `redirect_attempt` [$__range]))",
+          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `redirect_fired` [$__range]))",
           "refId": "A",
           "instant": true
         }
@@ -147,7 +147,7 @@
       },
       "targets": [
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `redirect_fallback_button_shown` [$__range]))",
+          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `redirect_button_shown` [$__range]))",
           "refId": "A",
           "instant": true
         }
@@ -195,8 +195,8 @@
           "refId": "B"
         },
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `redirect_fallback_button_shown` [1h]))",
-          "legendFormat": "fallback shown",
+          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `redirect_button_shown` [1h]))",
+          "legendFormat": "button shown",
           "refId": "C"
         },
         {
@@ -225,8 +225,8 @@
       "collapsed": false
     },
     {
-      "title": "Redirect Method",
-      "description": "Which redirect method was attempted",
+      "title": "Redirect Outcome",
+      "description": "How the redirect resolved",
       "type": "piechart",
       "gridPos": {
         "h": 8,
@@ -240,24 +240,19 @@
       },
       "targets": [
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `redirect_attempt` |= `market_intent_iframe` [$__range]))",
-          "legendFormat": "intent (iframe)",
+          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `redirect_success` [$__range]))",
+          "legendFormat": "window.open success",
           "refId": "A"
         },
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `redirect_attempt` |= `market_intent_location` [$__range]))",
-          "legendFormat": "intent (location)",
+          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `redirect_fallback_location` [$__range]))",
+          "legendFormat": "location.href fallback",
           "refId": "B"
         },
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `redirect_attempt` |= `play_store_web` [$__range]))",
-          "legendFormat": "play store web",
+          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `redirect_button_shown` [$__range]))",
+          "legendFormat": "manual button",
           "refId": "C"
-        },
-        {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `redirect_attempt` |= `play_store_web_direct` [$__range]))",
-          "legendFormat": "web direct (non-android)",
-          "refId": "D"
         }
       ],
       "options": {
@@ -495,7 +490,7 @@
           "instant": true
         },
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `redirect_attempt` |= `market_intent_iframe` [$__range]))",
+          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `redirect_fired` [$__range]))",
           "refId": "B",
           "instant": true
         },
@@ -505,12 +500,12 @@
           "instant": true
         },
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `redirect_attempt` |= `play_store_web` [$__range]))",
+          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `redirect_fallback_location` [$__range]))",
           "refId": "D",
           "instant": true
         },
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `redirect_fallback_button_shown` [$__range]))",
+          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `redirect_button_shown` [$__range]))",
           "refId": "E",
           "instant": true
         },
@@ -563,7 +558,7 @@
             "properties": [
               {
                 "id": "displayName",
-                "value": "2. Intent (iframe)"
+                "value": "2. Redirect Fired"
               },
               {
                 "id": "color",
@@ -582,7 +577,7 @@
             "properties": [
               {
                 "id": "displayName",
-                "value": "3. Intent Success"
+                "value": "3. Success (left page)"
               },
               {
                 "id": "color",
@@ -601,7 +596,7 @@
             "properties": [
               {
                 "id": "displayName",
-                "value": "4. Web Fallback"
+                "value": "4. Fallback (location.href)"
               },
               {
                 "id": "color",
