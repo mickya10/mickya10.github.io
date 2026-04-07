@@ -19,7 +19,7 @@
       "collapsed": false
     },
     {
-      "title": "Page Loads",
+      "title": "Redirects",
       "type": "stat",
       "gridPos": {
         "h": 4,
@@ -33,7 +33,7 @@
       },
       "targets": [
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `download_page_loaded` [$__range]))",
+          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `download_redirect` [$__range]))",
           "refId": "A",
           "instant": true
         }
@@ -52,93 +52,17 @@
             "mode": "fixed",
             "fixedColor": "blue"
           },
-          "displayName": "Page Loads"
-        }
-      }
-    },
-    {
-      "title": "Redirect Attempts",
-      "type": "stat",
-      "gridPos": {
-        "h": 4,
-        "w": 6,
-        "x": 6,
-        "y": 1
-      },
-      "datasource": {
-        "type": "loki",
-        "uid": "grafanacloud-logs"
-      },
-      "targets": [
-        {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `redirect_fired` [$__range]))",
-          "refId": "A",
-          "instant": true
-        }
-      ],
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "colorMode": "background"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "fixed",
-            "fixedColor": "green"
-          },
           "displayName": "Redirects"
         }
       }
     },
     {
-      "title": "Successful Redirects",
+      "title": "Fallback Buttons",
       "type": "stat",
       "gridPos": {
         "h": 4,
         "w": 6,
-        "x": 12,
-        "y": 1
-      },
-      "datasource": {
-        "type": "loki",
-        "uid": "grafanacloud-logs"
-      },
-      "targets": [
-        {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `redirect_success` [$__range]))",
-          "refId": "A",
-          "instant": true
-        }
-      ],
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "colorMode": "background"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "fixed",
-            "fixedColor": "purple"
-          },
-          "displayName": "Success"
-        }
-      }
-    },
-    {
-      "title": "Fallback Buttons Shown",
-      "type": "stat",
-      "gridPos": {
-        "h": 4,
-        "w": 6,
-        "x": 18,
+        "x": 6,
         "y": 1
       },
       "datasource": {
@@ -171,6 +95,82 @@
       }
     },
     {
+      "title": "Manual Clicks",
+      "type": "stat",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 1
+      },
+      "datasource": {
+        "type": "loki",
+        "uid": "grafanacloud-logs"
+      },
+      "targets": [
+        {
+          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `redirect_manual_click` [$__range]))",
+          "refId": "A",
+          "instant": true
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "background"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "red"
+          },
+          "displayName": "Manual Clicks"
+        }
+      }
+    },
+    {
+      "title": "Unknown Country",
+      "type": "stat",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 1
+      },
+      "datasource": {
+        "type": "loki",
+        "uid": "grafanacloud-logs"
+      },
+      "targets": [
+        {
+          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `download_redirect` |= `unknown` [$__range]))",
+          "refId": "A",
+          "instant": true
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "background"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "yellow"
+          },
+          "displayName": "Unknown Country"
+        }
+      }
+    },
+    {
       "title": "Activity Over Time",
       "type": "timeseries",
       "gridPos": {
@@ -185,24 +185,19 @@
       },
       "targets": [
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `download_page_loaded` [1h]))",
-          "legendFormat": "page loads",
+          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `download_redirect` [1h]))",
+          "legendFormat": "redirects",
           "refId": "A"
         },
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `redirect_success` [1h]))",
-          "legendFormat": "success",
-          "refId": "B"
-        },
-        {
           "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `redirect_button_shown` [1h]))",
-          "legendFormat": "button shown",
-          "refId": "C"
+          "legendFormat": "fallback shown",
+          "refId": "B"
         },
         {
           "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `redirect_manual_click` [1h]))",
           "legendFormat": "manual click",
-          "refId": "D"
+          "refId": "C"
         }
       ],
       "fieldConfig": {
@@ -240,18 +235,18 @@
       },
       "targets": [
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `redirect_success` [$__range]))",
-          "legendFormat": "window.open success",
+          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `download_redirect` [$__range]))",
+          "legendFormat": "auto redirect",
           "refId": "A"
         },
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `redirect_fallback_location` [$__range]))",
-          "legendFormat": "location.href fallback",
+          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `redirect_button_shown` [$__range]))",
+          "legendFormat": "needed fallback",
           "refId": "B"
         },
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `redirect_button_shown` [$__range]))",
-          "legendFormat": "manual button",
+          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `redirect_manual_click` [$__range]))",
+          "legendFormat": "manual click",
           "refId": "C"
         }
       ],
@@ -485,33 +480,18 @@
       },
       "targets": [
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `download_page_loaded` [$__range]))",
+          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `download_redirect` [$__range]))",
           "refId": "A",
           "instant": true
         },
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `redirect_fired` [$__range]))",
+          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `redirect_button_shown` [$__range]))",
           "refId": "B",
           "instant": true
         },
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `redirect_success` [$__range]))",
-          "refId": "C",
-          "instant": true
-        },
-        {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `redirect_fallback_location` [$__range]))",
-          "refId": "D",
-          "instant": true
-        },
-        {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `redirect_button_shown` [$__range]))",
-          "refId": "E",
-          "instant": true
-        },
-        {
           "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `redirect_manual_click` [$__range]))",
-          "refId": "F",
+          "refId": "C",
           "instant": true
         }
       ],
@@ -539,7 +519,7 @@
             "properties": [
               {
                 "id": "displayName",
-                "value": "1. Page Load"
+                "value": "1. Redirect Fired"
               },
               {
                 "id": "color",
@@ -558,45 +538,7 @@
             "properties": [
               {
                 "id": "displayName",
-                "value": "2. Redirect Fired"
-              },
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "green",
-                  "mode": "fixed"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byFrameRefID",
-              "options": "C"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "3. Success (left page)"
-              },
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "purple",
-                  "mode": "fixed"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byFrameRefID",
-              "options": "D"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "4. Fallback (location.href)"
+                "value": "2. Button Shown (redirect slow/failed)"
               },
               {
                 "id": "color",
@@ -610,36 +552,17 @@
           {
             "matcher": {
               "id": "byFrameRefID",
-              "options": "E"
+              "options": "C"
             },
             "properties": [
               {
                 "id": "displayName",
-                "value": "5. Button Shown"
+                "value": "3. Manual Click"
               },
               {
                 "id": "color",
                 "value": {
                   "fixedColor": "red",
-                  "mode": "fixed"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byFrameRefID",
-              "options": "F"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "6. Manual Click"
-              },
-              {
-                "id": "color",
-                "value": {
-                  "fixedColor": "yellow",
                   "mode": "fixed"
                 }
               }
