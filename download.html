@@ -6,82 +6,210 @@
     <title>Lyrika - Download</title>
     <style>
         body { background: #0a0b0f; color: #e8e8ec; font-family: -apple-system, sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
-        .msg { text-align: center; }
+        .msg { text-align: center; padding: 24px; }
         .msg h1 { font-size: 2rem; background: linear-gradient(135deg, #2dd4bf, #a855f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .msg p { color: #888; margin-top: 8px; }
+        .spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid #333; border-top-color: #2dd4bf; border-radius: 50%; animation: spin 0.8s linear infinite; margin-right: 8px; vertical-align: middle; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .btn { display: inline-block; margin-top: 24px; background: linear-gradient(135deg, #2dd4bf, #a855f6); color: #0a0b0f; padding: 14px 32px; border-radius: 12px; text-decoration: none; font-weight: 600; font-size: 1rem; }
     </style>
 </head>
 <body>
     <div class="msg">
         <h1>Lyrika</h1>
-        <p>Redirecting to Google Play...</p>
+        <p id="status"><span class="spinner"></span>Redirecting to Google Play...</p>
+        <a id="fallback" class="btn" style="display:none" href="https://play.google.com/store/apps/details?id=com.masoft.lyrika">Open Google Play</a>
     </div>
     <script src="https://unpkg.com/@grafana/faro-web-sdk@2.2.4/dist/bundle/faro-web-sdk.iife.js"></script>
     <script>
         (async function() {
             var FARO_URL = "https://faro-collector-prod-eu-central-0.grafana.net/collect/32b6bb54b1e3901e7ece472b5e31910f";
-            var PLAY_URL = "https://play.google.com/store/apps/details?id=com.masoft.lyrika";
+            var PACKAGE = "com.masoft.lyrika";
+            var PLAY_WEB = "https://play.google.com/store/apps/details?id=" + PACKAGE;
             var params = new URLSearchParams(window.location.search);
             var source = params.get("utm_source") || "direct";
             var medium = params.get("utm_medium") || "";
             var campaign = params.get("utm_campaign") || "";
             var isMobile = /Mobile|Android|iPhone|iPad/.test(navigator.userAgent);
+            var isAndroid = /Android/.test(navigator.userAgent);
 
-            // Detect country via free GeoIP
-            var country = "unknown";
-            var city = "";
-            try {
-                var geo = await fetch("https://ipapi.co/json/", { signal: AbortSignal.timeout(3000) });
-                if (geo.ok) {
-                    var data = await geo.json();
-                    country = data.country_name || data.country_code || "unknown";
-                    city = data.city || "";
-                }
-            } catch (e) {}
-
-            // Intercept fetch to detect when Faro sends data
-            var faroSent = false;
-            var originalFetch = window.fetch;
-            window.fetch = function(url) {
-                if (typeof url === "string" && url.includes("faro-collector")) {
-                    return originalFetch.apply(this, arguments).then(function(res) {
-                        faroSent = true;
-                        return res;
-                    });
-                }
-                return originalFetch.apply(this, arguments);
-            };
-
-            var faro = window.GrafanaFaroWebSdk.initializeFaro({
-                url: FARO_URL,
-                app: { name: "Lyrika Installs", version: "1.0.0", environment: "production" },
-                instrumentations: window.GrafanaFaroWebSdk.getWebInstrumentations(),
-            });
-
-            faro.api.pushEvent("download_click", {
-                source: source,
-                medium: medium,
-                campaign: campaign,
-                referrer: document.referrer || "",
-                screen: screen.width + "x" + screen.height,
-                device: isMobile ? "Mobile" : "Desktop",
-                country: country,
-                city: city,
-            });
-
-            // Wait until Faro actually sends, or timeout after 3s
-            var waited = 0;
-            while (!faroSent && waited < 3000) {
-                await new Promise(function(r) { setTimeout(r, 100); });
-                waited += 100;
-            }
-
-            // Redirect to Play Store
+            // Build UTM suffix
             var utm = [];
             if (source !== "direct") utm.push("utm_source=" + source);
             if (medium) utm.push("utm_medium=" + medium);
             if (campaign) utm.push("utm_campaign=" + campaign);
-            window.location.href = PLAY_URL + (utm.length ? "&" + utm.join("&") : "");
+            var utmStr = utm.length ? "&" + utm.join("&") : "";
+            var playUrl = PLAY_WEB + utmStr;
+            var marketUrl = "market://details?id=" + PACKAGE + utmStr;
+
+            // --- Init Faro ---
+            var faro;
+            try {
+                faro = window.GrafanaFaroWebSdk.initializeFaro({
+                    url: FARO_URL,
+                    app: { name: "Lyrika Installs", version: "2.0.0", environment: "production" },
+                });
+            } catch(e) {
+                faro = null;
+            }
+
+            // Helper: push event and wait for it to be sent
+            function trackAndWait(name, attrs) {
+                if (!faro) return Promise.resolve();
+                faro.api.pushEvent(name, attrs);
+                // Wait for Faro's internal batch to flush
+                return new Promise(function(resolve) {
+                    // Intercept fetch to detect when Faro sends
+                    var sent = false;
+                    var origFetch = window.fetch;
+                    window.fetch = function(url) {
+                        var result = origFetch.apply(this, arguments);
+                        if (typeof url === "string" && url.includes("faro-collector")) {
+                            result.then(function() { sent = true; }).catch(function() { sent = true; });
+                        }
+                        return result;
+                    };
+                    // Poll until sent or timeout
+                    var waited = 0;
+                    var interval = setInterval(function() {
+                        waited += 50;
+                        if (sent || waited >= 3000) {
+                            clearInterval(interval);
+                            window.fetch = origFetch;
+                            resolve();
+                        }
+                    }, 50);
+                });
+            }
+
+            // --- Geo lookup (try multiple services) ---
+            var country = "unknown";
+            var city = "";
+            var geoService = "none";
+
+            // Try ip-api.com first (no rate limit for non-commercial, returns JSON)
+            try {
+                var geo = await fetch("http://ip-api.com/json/?fields=status,country,city", { signal: AbortSignal.timeout(3000) });
+                if (geo.ok) {
+                    var data = await geo.json();
+                    if (data.status === "success") {
+                        country = data.country || "unknown";
+                        city = data.city || "";
+                        geoService = "ip-api";
+                    }
+                }
+            } catch(e) {}
+
+            // Fallback to ipapi.co if first failed
+            if (country === "unknown") {
+                try {
+                    var geo2 = await fetch("https://ipapi.co/json/", { signal: AbortSignal.timeout(3000) });
+                    if (geo2.ok) {
+                        var data2 = await geo2.json();
+                        if (!data2.error) {
+                            country = data2.country_name || data2.country_code || "unknown";
+                            city = data2.city || "";
+                            geoService = "ipapi.co";
+                        }
+                    }
+                } catch(e) {}
+            }
+
+            // Second fallback: ipinfo.io
+            if (country === "unknown") {
+                try {
+                    var geo3 = await fetch("https://ipinfo.io/json", { signal: AbortSignal.timeout(3000) });
+                    if (geo3.ok) {
+                        var data3 = await geo3.json();
+                        country = data3.country || "unknown";
+                        city = data3.city || "";
+                        geoService = "ipinfo.io";
+                    }
+                } catch(e) {}
+            }
+
+            var baseAttrs = {
+                source: source,
+                medium: medium,
+                campaign: campaign,
+                referrer: document.referrer || "",
+                device: isMobile ? "Mobile" : "Desktop",
+                platform: isAndroid ? "android" : (isMobile ? "ios" : "desktop"),
+                country: country,
+                city: city,
+                geo_service: geoService,
+                user_agent: navigator.userAgent.substring(0, 200),
+            };
+
+            // --- Track page load ---
+            await trackAndWait("download_page_loaded", baseAttrs);
+
+            // --- Redirect ---
+            if (isAndroid) {
+                // Step 1: Try market:// intent via iframe
+                await trackAndWait("redirect_attempt", Object.assign({}, baseAttrs, { method: "market_intent_iframe" }));
+
+                var intentOpened = false;
+                var iframe = document.createElement("iframe");
+                iframe.style.display = "none";
+                iframe.src = marketUrl;
+                document.body.appendChild(iframe);
+
+                // Listen for page visibility change (means Play Store opened)
+                var visibilityHandler = function() {
+                    if (document.hidden) {
+                        intentOpened = true;
+                    }
+                };
+                document.addEventListener("visibilitychange", visibilityHandler);
+
+                // Wait 2s to see if intent opened
+                await new Promise(function(r) { setTimeout(r, 2000); });
+                document.removeEventListener("visibilitychange", visibilityHandler);
+
+                if (intentOpened) {
+                    await trackAndWait("redirect_success", Object.assign({}, baseAttrs, { method: "market_intent_iframe" }));
+                    return;
+                }
+
+                // Step 2: Try market:// via window.location
+                await trackAndWait("redirect_attempt", Object.assign({}, baseAttrs, { method: "market_intent_location" }));
+                window.location.href = marketUrl;
+
+                await new Promise(function(r) { setTimeout(r, 2000); });
+
+                // If we're still here, intent didn't work
+                // Step 3: Redirect to Play Store web
+                await trackAndWait("redirect_attempt", Object.assign({}, baseAttrs, { method: "play_store_web" }));
+                window.location.href = playUrl;
+
+                // Step 4: Show manual button as last resort
+                await new Promise(function(r) { setTimeout(r, 2000); });
+                await trackAndWait("redirect_fallback_button_shown", baseAttrs);
+                var btn = document.getElementById("fallback");
+                btn.href = playUrl;
+                btn.style.display = "inline-block";
+                btn.addEventListener("click", function() {
+                    trackAndWait("redirect_manual_click", baseAttrs);
+                });
+                document.getElementById("status").textContent = "Tap the button below to open Google Play";
+
+            } else {
+                // Non-Android: go to Play Store web
+                await trackAndWait("redirect_attempt", Object.assign({}, baseAttrs, { method: "play_store_web_direct" }));
+                window.location.href = playUrl;
+
+                // Show button fallback after 3s
+                await new Promise(function(r) { setTimeout(r, 3000); });
+                await trackAndWait("redirect_fallback_button_shown", baseAttrs);
+                var btn2 = document.getElementById("fallback");
+                btn2.href = playUrl;
+                btn2.style.display = "inline-block";
+                btn2.addEventListener("click", function() {
+                    trackAndWait("redirect_manual_click", baseAttrs);
+                });
+                document.getElementById("status").textContent = "Tap the button below to open Google Play";
+            }
         })();
     </script>
 </body>

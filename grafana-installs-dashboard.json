@@ -1,123 +1,167 @@
 {
-  "__inputs": [
-    {
-      "name": "DS_LOKI",
-      "label": "Loki",
-      "description": "",
-      "type": "datasource",
-      "pluginId": "loki",
-      "pluginName": "Loki"
-    }
-  ],
-  "__requires": [
-    {"type": "grafana", "id": "grafana", "name": "Grafana", "version": "10.0.0"},
-    {"type": "datasource", "id": "loki", "name": "Loki", "version": "1.0.0"}
-  ],
-  "id": null,
-  "uid": null,
-  "title": "Lyrika Installs - Download Clicks",
-  "description": "Track download clicks from ad campaigns (Taboola, etc.)",
-  "tags": ["lyrika", "installs", "campaigns"],
-  "timezone": "browser",
+  "annotations": { "list": [] },
   "editable": true,
   "graphTooltip": 1,
-  "schemaVersion": 38,
-  "version": 1,
-  "refresh": "1m",
-  "time": {"from": "now-7d", "to": "now"},
-  "annotations": {"list": [{"builtIn": 1, "datasource": {"type": "grafana", "uid": "-- Grafana --"}, "enable": true, "hide": true, "iconColor": "rgba(0, 211, 255, 1)", "name": "Annotations & Alerts", "type": "dashboard"}]},
-  "templating": {"list": []},
+  "id": null,
   "links": [],
   "panels": [
+    { "title": "Overview", "type": "row", "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 }, "collapsed": false },
     {
-      "id": 1,
-      "title": "Total Download Clicks",
+      "title": "Page Loads",
       "type": "stat",
-      "gridPos": {"h": 5, "w": 6, "x": 0, "y": 0},
-      "datasource": {"type": "loki", "uid": "${DS_LOKI}"},
-      "targets": [{"datasource": {"type": "loki", "uid": "${DS_LOKI}"}, "expr": "sum(count_over_time({app_id=\"253\", kind=\"event\"} | logfmt | event_name=\"download_click\" [$__range]))", "refId": "A"}],
-      "fieldConfig": {"defaults": {"thresholds": {"mode": "absolute", "steps": [{"value": null, "color": "green"}]}}, "overrides": []},
-      "options": {}
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 1 },
+      "datasource": { "type": "loki", "uid": "grafanacloud-logs" },
+      "targets": [{ "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `download_page_loaded` [$__range]))", "refId": "A", "instant": true }],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background" },
+      "fieldConfig": { "defaults": { "color": { "mode": "fixed", "fixedColor": "blue" }, "displayName": "Page Loads" } }
     },
     {
-      "id": 2,
-      "title": "Clicks by Source",
-      "type": "piechart",
-      "gridPos": {"h": 8, "w": 9, "x": 6, "y": 0},
-      "datasource": {"type": "loki", "uid": "${DS_LOKI}"},
-      "targets": [{"datasource": {"type": "loki", "uid": "${DS_LOKI}"}, "expr": "sum by (event_data_source) (count_over_time({app_id=\"253\", kind=\"event\"} | logfmt | event_name=\"download_click\" [$__range]))", "legendFormat": "{{event_data_source}}", "refId": "A"}],
-      "fieldConfig": {"defaults": {}, "overrides": []},
-      "options": {}
-    },
-    {
-      "id": 3,
-      "title": "Clicks by Campaign",
-      "type": "piechart",
-      "gridPos": {"h": 8, "w": 9, "x": 15, "y": 0},
-      "datasource": {"type": "loki", "uid": "${DS_LOKI}"},
-      "targets": [{"datasource": {"type": "loki", "uid": "${DS_LOKI}"}, "expr": "sum by (event_data_campaign) (count_over_time({app_id=\"253\", kind=\"event\"} | logfmt | event_name=\"download_click\" [$__range]))", "legendFormat": "{{event_data_campaign}}", "refId": "A"}],
-      "fieldConfig": {"defaults": {}, "overrides": []},
-      "options": {}
-    },
-    {
-      "id": 4,
-      "title": "Clicks Today",
+      "title": "Redirect Attempts",
       "type": "stat",
-      "gridPos": {"h": 5, "w": 6, "x": 0, "y": 5},
-      "datasource": {"type": "loki", "uid": "${DS_LOKI}"},
-      "targets": [{"datasource": {"type": "loki", "uid": "${DS_LOKI}"}, "expr": "sum(count_over_time({app_id=\"253\", kind=\"event\"} | logfmt | event_name=\"download_click\" [24h]))", "refId": "A"}],
-      "fieldConfig": {"defaults": {"thresholds": {"mode": "absolute", "steps": [{"value": null, "color": "blue"}]}}, "overrides": []},
-      "options": {}
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 1 },
+      "datasource": { "type": "loki", "uid": "grafanacloud-logs" },
+      "targets": [{ "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `redirect_attempt` [$__range]))", "refId": "A", "instant": true }],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background" },
+      "fieldConfig": { "defaults": { "color": { "mode": "fixed", "fixedColor": "green" }, "displayName": "Redirects" } }
     },
     {
-      "id": 5,
-      "title": "Clicks Over Time",
+      "title": "Successful Redirects",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 1 },
+      "datasource": { "type": "loki", "uid": "grafanacloud-logs" },
+      "targets": [{ "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `redirect_success` [$__range]))", "refId": "A", "instant": true }],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background" },
+      "fieldConfig": { "defaults": { "color": { "mode": "fixed", "fixedColor": "purple" }, "displayName": "Success" } }
+    },
+    {
+      "title": "Fallback Buttons Shown",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 1 },
+      "datasource": { "type": "loki", "uid": "grafanacloud-logs" },
+      "targets": [{ "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `redirect_fallback_button_shown` [$__range]))", "refId": "A", "instant": true }],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background" },
+      "fieldConfig": { "defaults": { "color": { "mode": "fixed", "fixedColor": "orange" }, "displayName": "Fallbacks" } }
+    },
+
+    {
+      "title": "Activity Over Time",
       "type": "timeseries",
-      "gridPos": {"h": 8, "w": 24, "x": 0, "y": 10},
-      "datasource": {"type": "loki", "uid": "${DS_LOKI}"},
-      "targets": [{"datasource": {"type": "loki", "uid": "${DS_LOKI}"}, "expr": "sum by (event_data_source) (count_over_time({app_id=\"253\", kind=\"event\"} | logfmt | event_name=\"download_click\" [1h]))", "legendFormat": "{{event_data_source}}", "refId": "A"}],
-      "fieldConfig": {"defaults": {}, "overrides": []},
-      "options": {}
+      "gridPos": { "h": 7, "w": 24, "x": 0, "y": 5 },
+      "datasource": { "type": "loki", "uid": "grafanacloud-logs" },
+      "targets": [
+        { "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `download_page_loaded` [1h]))", "legendFormat": "page loads", "refId": "A" },
+        { "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `redirect_success` [1h]))", "legendFormat": "success", "refId": "B" },
+        { "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `redirect_fallback_button_shown` [1h]))", "legendFormat": "fallback shown", "refId": "C" },
+        { "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `redirect_manual_click` [1h]))", "legendFormat": "manual click", "refId": "D" }
+      ],
+      "fieldConfig": { "defaults": { "custom": { "fillOpacity": 15 } } }
     },
+
+    { "title": "Redirect Breakdown", "type": "row", "gridPos": { "h": 1, "w": 24, "x": 0, "y": 12 }, "collapsed": false },
     {
-      "id": 6,
-      "title": "Clicks by Device",
+      "title": "Redirect Method",
+      "description": "Which redirect method was attempted",
       "type": "piechart",
-      "gridPos": {"h": 8, "w": 8, "x": 0, "y": 18},
-      "datasource": {"type": "loki", "uid": "${DS_LOKI}"},
-      "targets": [{"datasource": {"type": "loki", "uid": "${DS_LOKI}"}, "expr": "sum by (browser_mobile) (count_over_time({app_id=\"253\", kind=\"event\"} | logfmt | event_name=\"download_click\" [$__range]))", "legendFormat": "{{browser_mobile}}", "refId": "A"}],
-      "fieldConfig": {"defaults": {}, "overrides": []},
-      "options": {}
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 13 },
+      "datasource": { "type": "loki", "uid": "grafanacloud-logs" },
+      "targets": [
+        { "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `redirect_attempt` |= `market_intent_iframe` [$__range]))", "legendFormat": "intent (iframe)", "refId": "A" },
+        { "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `redirect_attempt` |= `market_intent_location` [$__range]))", "legendFormat": "intent (location)", "refId": "B" },
+        { "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `redirect_attempt` |= `play_store_web` [$__range]))", "legendFormat": "play store web", "refId": "C" },
+        { "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `redirect_attempt` |= `play_store_web_direct` [$__range]))", "legendFormat": "web direct (non-android)", "refId": "D" }
+      ],
+      "options": { "reduceOptions": { "calcs": ["sum"] }, "legend": { "displayMode": "table", "placement": "bottom" }, "pieType": "donut" }
     },
     {
-      "id": 7,
-      "title": "Clicks by Screen Size",
+      "title": "Platform",
+      "description": "Android vs iOS vs Desktop",
       "type": "piechart",
-      "gridPos": {"h": 8, "w": 8, "x": 8, "y": 18},
-      "datasource": {"type": "loki", "uid": "${DS_LOKI}"},
-      "targets": [{"datasource": {"type": "loki", "uid": "${DS_LOKI}"}, "expr": "sum by (event_data_screen) (count_over_time({app_id=\"253\", kind=\"event\"} | logfmt | event_name=\"download_click\" [$__range]))", "legendFormat": "{{event_data_screen}}", "refId": "A"}],
-      "fieldConfig": {"defaults": {}, "overrides": []},
-      "options": {}
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 13 },
+      "datasource": { "type": "loki", "uid": "grafanacloud-logs" },
+      "targets": [
+        { "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `download_page_loaded` |= `android` [$__range]))", "legendFormat": "android", "refId": "A" },
+        { "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `download_page_loaded` |= `\"platform\":\"ios\"` [$__range]))", "legendFormat": "ios", "refId": "B" },
+        { "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `download_page_loaded` |= `\"platform\":\"desktop\"` [$__range]))", "legendFormat": "desktop", "refId": "C" }
+      ],
+      "options": { "reduceOptions": { "calcs": ["sum"] }, "legend": { "displayMode": "table", "placement": "bottom" }, "pieType": "donut" }
     },
     {
-      "id": 8,
-      "title": "Clicks by Language",
+      "title": "Traffic Source",
+      "description": "Where users come from",
       "type": "piechart",
-      "gridPos": {"h": 8, "w": 8, "x": 16, "y": 18},
-      "datasource": {"type": "loki", "uid": "${DS_LOKI}"},
-      "targets": [{"datasource": {"type": "loki", "uid": "${DS_LOKI}"}, "expr": "sum by (event_data_language) (count_over_time({app_id=\"253\", kind=\"event\"} | logfmt | event_name=\"download_click\" [$__range]))", "legendFormat": "{{event_data_language}}", "refId": "A"}],
-      "fieldConfig": {"defaults": {}, "overrides": []},
-      "options": {}
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 13 },
+      "datasource": { "type": "loki", "uid": "grafanacloud-logs" },
+      "targets": [
+        { "expr": "sum by (source) (count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `download_page_loaded` | regexp `event_data_source=(?P<source>\\w+)` [$__range]))", "legendFormat": "{{source}}", "refId": "A" }
+      ],
+      "options": { "reduceOptions": { "calcs": ["sum"] }, "legend": { "displayMode": "table", "placement": "bottom" }, "pieType": "donut" }
+    },
+
+    { "title": "Geography", "type": "row", "gridPos": { "h": 1, "w": 24, "x": 0, "y": 21 }, "collapsed": false },
+    {
+      "title": "Country",
+      "type": "piechart",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 22 },
+      "datasource": { "type": "loki", "uid": "grafanacloud-logs" },
+      "targets": [
+        { "expr": "sum by (country) (count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `download_page_loaded` | regexp `event_data_country=(?P<country>[^\" ]+)` [$__range]))", "legendFormat": "{{country}}", "refId": "A" }
+      ],
+      "options": { "reduceOptions": { "calcs": ["sum"] }, "legend": { "displayMode": "table", "placement": "bottom" }, "pieType": "donut" }
     },
     {
-      "id": 9,
-      "title": "Recent Clicks",
+      "title": "Geo Service Used",
+      "description": "Which geo service resolved the country",
+      "type": "piechart",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 22 },
+      "datasource": { "type": "loki", "uid": "grafanacloud-logs" },
+      "targets": [
+        { "expr": "sum by (geo) (count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `download_page_loaded` | regexp `event_data_geo_service=(?P<geo>\\w+)` [$__range]))", "legendFormat": "{{geo}}", "refId": "A" }
+      ],
+      "options": { "reduceOptions": { "calcs": ["sum"] }, "legend": { "displayMode": "table", "placement": "bottom" }, "pieType": "donut" }
+    },
+
+    { "title": "Funnel & Logs", "type": "row", "gridPos": { "h": 1, "w": 24, "x": 0, "y": 30 }, "collapsed": false },
+    {
+      "title": "Redirect Funnel",
+      "description": "Page Load → Attempt → Success / Fallback",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 24, "x": 0, "y": 31 },
+      "datasource": { "type": "loki", "uid": "grafanacloud-logs" },
+      "targets": [
+        { "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `download_page_loaded` [$__range]))", "refId": "A", "instant": true },
+        { "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `redirect_attempt` |= `market_intent_iframe` [$__range]))", "refId": "B", "instant": true },
+        { "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `redirect_success` [$__range]))", "refId": "C", "instant": true },
+        { "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `redirect_attempt` |= `play_store_web` [$__range]))", "refId": "D", "instant": true },
+        { "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `redirect_fallback_button_shown` [$__range]))", "refId": "E", "instant": true },
+        { "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `redirect_manual_click` [$__range]))", "refId": "F", "instant": true }
+      ],
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" } },
+        "overrides": [
+          { "matcher": { "id": "byFrameRefID", "options": "A" }, "properties": [{ "id": "displayName", "value": "1. Page Load" }] },
+          { "matcher": { "id": "byFrameRefID", "options": "B" }, "properties": [{ "id": "displayName", "value": "2. Intent (iframe)" }] },
+          { "matcher": { "id": "byFrameRefID", "options": "C" }, "properties": [{ "id": "displayName", "value": "3. Intent Success" }] },
+          { "matcher": { "id": "byFrameRefID", "options": "D" }, "properties": [{ "id": "displayName", "value": "4. Web Fallback" }] },
+          { "matcher": { "id": "byFrameRefID", "options": "E" }, "properties": [{ "id": "displayName", "value": "5. Button Shown" }] },
+          { "matcher": { "id": "byFrameRefID", "options": "F" }, "properties": [{ "id": "displayName", "value": "6. Manual Click" }] }
+        ]
+      },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value", "graphMode": "none", "orientation": "horizontal" }
+    },
+    {
+      "title": "All Events",
       "type": "logs",
-      "gridPos": {"h": 8, "w": 24, "x": 0, "y": 26},
-      "datasource": {"type": "loki", "uid": "${DS_LOKI}"},
-      "targets": [{"datasource": {"type": "loki", "uid": "${DS_LOKI}"}, "expr": "{app_id=\"253\", kind=\"event\"} | logfmt | event_name=\"download_click\"", "refId": "A"}],
-      "fieldConfig": {"defaults": {}, "overrides": []},
-      "options": {}
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 35 },
+      "datasource": { "type": "loki", "uid": "grafanacloud-logs" },
+      "targets": [{ "expr": "{service_name=\"Lyrika Installs\", kind=\"event\"}", "refId": "A" }],
+      "options": { "showTime": true, "wrapLogMessage": true, "prettifyLogMessage": true, "enableLogDetails": true, "sortOrder": "Descending" }
     }
-  ]
+  ],
+  "schemaVersion": 39,
+  "tags": ["lyrika", "installs"],
+  "templating": { "list": [] },
+  "time": { "from": "now-7d", "to": "now" },
+  "title": "Lyrika Installs v2",
+  "uid": "lyrika-installs-v2",
+  "version": 1
 }
