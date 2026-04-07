@@ -401,7 +401,7 @@
       },
       "targets": [
         {
-          "expr": "sum by (country) (count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `download_page_loaded` | regexp `event_data_country=(?P<country>[^\" ]+)` [$__range]))",
+          "expr": "sum by (country) (count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `event_name=download_redirect` | regexp `event_data_country=(?P<country>[^\" ]+)` [$__range]))",
           "legendFormat": "{{country}}",
           "refId": "A"
         }
