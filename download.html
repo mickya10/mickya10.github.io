@@ -30,8 +30,7 @@
             var source = params.get("utm_source") || "direct";
             var medium = params.get("utm_medium") || "";
             var campaign = params.get("utm_campaign") || "";
-            var isMobile = /Mobile|Android|iPhone|iPad/.test(navigator.userAgent);
-            var isAndroid = /Android/.test(navigator.userAgent);
+            var ua = navigator.userAgent || "";
 
             var utm = [];
             if (source !== "direct") utm.push("utm_source=" + source);
@@ -39,16 +38,70 @@
             if (campaign) utm.push("utm_campaign=" + campaign);
             var playUrl = PLAY_WEB + (utm.length ? "&" + utm.join("&") : "");
 
-            // --- Init Faro ---
+            // ─── Environment detection ───
+
+            var isMobile = /Mobile|Android|iPhone|iPad/i.test(ua);
+            var isAndroid = /Android/i.test(ua);
+            var isIOS = /iPhone|iPad|iPod/i.test(ua);
+
+            // In iframe?
+            var inIframe = "false";
+            try { inIframe = (window.self !== window.top) ? "true" : "false"; } catch(e) { inIframe = "true"; /* cross-origin iframe throws */ }
+
+            // In-app browser detection
+            var inAppBrowser = "none";
+            if (/FBAN|FBAV/i.test(ua)) inAppBrowser = "facebook";
+            else if (/Instagram/i.test(ua)) inAppBrowser = "instagram";
+            else if (/Twitter|X-Twitter/i.test(ua)) inAppBrowser = "twitter";
+            else if (/TikTok/i.test(ua)) inAppBrowser = "tiktok";
+            else if (/LinkedInApp/i.test(ua)) inAppBrowser = "linkedin";
+            else if (/Pinterest/i.test(ua)) inAppBrowser = "pinterest";
+            else if (/Snapchat/i.test(ua)) inAppBrowser = "snapchat";
+            else if (/Line\//i.test(ua)) inAppBrowser = "line";
+            else if (/MiuiBrowser/i.test(ua)) inAppBrowser = "miui";
+            else if (/SamsungBrowser/i.test(ua)) inAppBrowser = "samsung";
+            else if (/\bwv\b/.test(ua)) inAppBrowser = "webview"; // generic WebView
+
+            // Bot detection
+            var isBot = "false";
+            if (/bot|crawl|spider|slurp|Baiduspider|facebookexternalhit|Twitterbot|LinkedInBot|Googlebot|bingbot|yandex|DuckDuckBot|Applebot|Pinterestbot|TelegramBot|WhatsApp/i.test(ua)) {
+                isBot = "true";
+            }
+
+            // Browser detection
+            var browserName = "unknown";
+            if (/CriOS/i.test(ua)) browserName = "chrome-ios";
+            else if (/Chrome/i.test(ua) && !/Edg/i.test(ua)) browserName = "chrome";
+            else if (/Safari/i.test(ua) && !/Chrome/i.test(ua)) browserName = "safari";
+            else if (/Firefox|FxiOS/i.test(ua)) browserName = "firefox";
+            else if (/Edg/i.test(ua)) browserName = "edge";
+            else if (/Opera|OPR/i.test(ua)) browserName = "opera";
+
+            // Platform
+            var platform = "desktop";
+            if (isAndroid) platform = "android";
+            else if (isIOS) platform = "ios";
+
+            // Potential redirect issues
+            var issues = [];
+            if (inIframe === "true") issues.push("iframe");
+            if (inAppBrowser !== "none") issues.push("in_app_" + inAppBrowser);
+            if (!isAndroid) issues.push("not_android");
+            if (isBot === "true") issues.push("bot");
+            if (!navigator.cookieEnabled) issues.push("cookies_disabled");
+            if (typeof window.open !== "function") issues.push("no_window_open");
+
+            // ─── Init Faro ───
             var faro = null;
+            var faroLoaded = "true";
             try {
                 faro = window.GrafanaFaroWebSdk.initializeFaro({
                     url: FARO_URL,
                     app: { name: "Lyrika Installs", version: "2.1.0", environment: "production" },
                 });
-            } catch(e) {}
+            } catch(e) { faroLoaded = "false"; issues.push("faro_failed"); }
 
-            // Helper: send event via direct fetch to Faro collector (bypass SDK batching)
+            // Helper: send event via sendBeacon (survives navigation)
             function sendEvent(name, attrs) {
                 var payload = {
                     events: [{
@@ -59,23 +112,23 @@
                     }],
                     meta: {
                         app: { name: "Lyrika Installs", version: "2.1.0", environment: "production" },
-                        browser: { name: navigator.userAgent.substring(0, 100) },
+                        browser: { name: ua.substring(0, 100) },
                         page: { url: window.location.href }
                     }
                 };
-                // Use sendBeacon for reliability (survives page navigation)
                 if (navigator.sendBeacon) {
                     navigator.sendBeacon(FARO_URL, JSON.stringify(payload));
                 } else {
-                    // Fallback: sync XHR
-                    var xhr = new XMLHttpRequest();
-                    xhr.open("POST", FARO_URL, false); // sync
-                    xhr.setRequestHeader("Content-Type", "application/json");
-                    xhr.send(JSON.stringify(payload));
+                    try {
+                        var xhr = new XMLHttpRequest();
+                        xhr.open("POST", FARO_URL, false);
+                        xhr.setRequestHeader("Content-Type", "application/json");
+                        xhr.send(JSON.stringify(payload));
+                    } catch(e) {}
                 }
             }
 
-            // --- Geo lookup (HTTPS only) ---
+            // ─── Geo lookup (HTTPS only) ───
             var country = "unknown", city = "", geoService = "none";
 
             try {
@@ -93,29 +146,45 @@
                 } catch(e) {}
             }
 
+            if (country === "unknown") issues.push("geo_failed");
+
+            // ─── Build attributes ───
             var attrs = {
-                source: source, medium: medium, campaign: campaign,
+                source: source,
+                medium: medium,
+                campaign: campaign,
                 referrer: document.referrer || "",
                 device: isMobile ? "Mobile" : "Desktop",
-                platform: isAndroid ? "android" : (isMobile ? "ios" : "desktop"),
-                country: country, city: city, geo_service: geoService,
+                platform: platform,
+                country: country,
+                city: city,
+                geo_service: geoService,
+                in_iframe: inIframe,
+                in_app_browser: inAppBrowser,
+                is_bot: isBot,
+                browser: browserName,
+                faro_loaded: faroLoaded,
+                issues: issues.length > 0 ? issues.join(",") : "none",
+                issue_count: String(issues.length),
             };
 
-            // --- Send tracking via sendBeacon (reliable, survives navigation) ---
+            // ─── Track and redirect ───
             sendEvent("download_redirect", attrs);
+            if (faro) { try { faro.api.pushEvent("download_redirect", attrs); } catch(e) {} }
 
-            // Also push to Faro SDK for consistency
-            if (faro) {
-                try { faro.api.pushEvent("download_redirect", attrs); } catch(e) {}
+            // Don't redirect bots
+            if (isBot === "true") {
+                document.getElementById("status").innerHTML = "Lyrika - Song Lyrics & Language Learning";
+                return;
             }
 
-            // Small delay to let sendBeacon flush
+            // Small delay for beacon flush
             await new Promise(function(r) { setTimeout(r, 500); });
 
-            // --- Redirect to Play Store ---
+            // Redirect to Play Store
             window.location.href = playUrl;
 
-            // If still here after 4s, show manual button
+            // Fallback button after 4s
             setTimeout(function() {
                 if (!document.hidden) {
                     sendEvent("redirect_button_shown", attrs);

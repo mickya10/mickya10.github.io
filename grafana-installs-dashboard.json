@@ -454,13 +454,256 @@
       }
     },
     {
-      "title": "Funnel & Logs",
+      "title": "Diagnostics",
       "type": "row",
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
         "y": 30
+      },
+      "collapsed": false
+    },
+    {
+      "title": "In-App Browser",
+      "description": "Users in in-app browsers (Facebook, Instagram, etc.) may have redirect issues",
+      "type": "piechart",
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 0,
+        "y": 31
+      },
+      "datasource": {
+        "type": "loki",
+        "uid": "grafanacloud-logs"
+      },
+      "targets": [
+        {
+          "expr": "sum by (iab) (count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `event_name=download_redirect` | regexp `event_data_in_app_browser=(?P<iab>\\w+)` [$__range]))",
+          "legendFormat": "{{iab}}",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ]
+        },
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "pieType": "donut"
+      }
+    },
+    {
+      "title": "In Iframe",
+      "description": "Pages loaded inside iframes may block navigation",
+      "type": "piechart",
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 6,
+        "y": 31
+      },
+      "datasource": {
+        "type": "loki",
+        "uid": "grafanacloud-logs"
+      },
+      "targets": [
+        {
+          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `event_name=download_redirect` |= `in_iframe=true` [$__range]))",
+          "legendFormat": "in iframe",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `event_name=download_redirect` |= `in_iframe=false` [$__range]))",
+          "legendFormat": "not iframe",
+          "refId": "B"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ]
+        },
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "pieType": "donut"
+      }
+    },
+    {
+      "title": "Browser",
+      "description": "Which browsers are being used",
+      "type": "piechart",
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 12,
+        "y": 31
+      },
+      "datasource": {
+        "type": "loki",
+        "uid": "grafanacloud-logs"
+      },
+      "targets": [
+        {
+          "expr": "sum by (br) (count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `event_name=download_redirect` | regexp `event_data_browser=(?P<br>\\w[\\w-]*)` [$__range]))",
+          "legendFormat": "{{br}}",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ]
+        },
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "pieType": "donut"
+      }
+    },
+    {
+      "title": "Issues Detected",
+      "description": "Potential redirect problems",
+      "type": "piechart",
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 18,
+        "y": 31
+      },
+      "datasource": {
+        "type": "loki",
+        "uid": "grafanacloud-logs"
+      },
+      "targets": [
+        {
+          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `event_name=download_redirect` |= `issues=none` [$__range]))",
+          "legendFormat": "no issues",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `event_name=download_redirect` |= `iframe` [$__range]))",
+          "legendFormat": "iframe",
+          "refId": "B"
+        },
+        {
+          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `event_name=download_redirect` |= `not_android` [$__range]))",
+          "legendFormat": "not android",
+          "refId": "C"
+        },
+        {
+          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `event_name=download_redirect` |= `in_app_` [$__range]))",
+          "legendFormat": "in-app browser",
+          "refId": "D"
+        },
+        {
+          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `event_name=download_redirect` |= `bot` [$__range]))",
+          "legendFormat": "bot",
+          "refId": "E"
+        },
+        {
+          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `event_name=download_redirect` |= `geo_failed` [$__range]))",
+          "legendFormat": "geo failed",
+          "refId": "F"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ]
+        },
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "pieType": "donut"
+      }
+    },
+    {
+      "title": "Bots vs Real Users",
+      "type": "piechart",
+      "gridPos": {
+        "h": 6,
+        "w": 8,
+        "x": 0,
+        "y": 39
+      },
+      "datasource": {
+        "type": "loki",
+        "uid": "grafanacloud-logs"
+      },
+      "targets": [
+        {
+          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `event_name=download_redirect` |= `is_bot=false` [$__range]))",
+          "legendFormat": "real users",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `event_name=download_redirect` |= `is_bot=true` [$__range]))",
+          "legendFormat": "bots",
+          "refId": "B"
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "sum"
+          ]
+        },
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "pieType": "donut"
+      }
+    },
+    {
+      "title": "Fallbacks by Issue",
+      "description": "When redirect_button_shown fires, what issues were present",
+      "type": "logs",
+      "gridPos": {
+        "h": 6,
+        "w": 16,
+        "x": 8,
+        "y": 39
+      },
+      "datasource": {
+        "type": "loki",
+        "uid": "grafanacloud-logs"
+      },
+      "targets": [
+        {
+          "expr": "{service_name=\"Lyrika Installs\", kind=\"event\"} |= `redirect_button_shown`",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "showTime": true,
+        "wrapLogMessage": true,
+        "prettifyLogMessage": true,
+        "enableLogDetails": true,
+        "sortOrder": "Descending"
+      }
+    },
+    {
+      "title": "Funnel & Logs",
+      "type": "row",
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 46
       },
       "collapsed": false
     },
@@ -472,7 +715,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 31
+        "y": 47
       },
       "datasource": {
         "type": "loki",
@@ -593,7 +836,7 @@
         "h": 10,
         "w": 24,
         "x": 0,
-        "y": 35
+        "y": 51
       },
       "datasource": {
         "type": "loki",
