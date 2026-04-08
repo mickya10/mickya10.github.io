@@ -58,9 +58,23 @@
             else if (/Pinterest/i.test(ua)) inAppBrowser = "pinterest";
             else if (/Snapchat/i.test(ua)) inAppBrowser = "snapchat";
             else if (/Line\//i.test(ua)) inAppBrowser = "line";
+            else if (/WhatsApp/i.test(ua)) inAppBrowser = "whatsapp";
+            else if (/Telegram/i.test(ua)) inAppBrowser = "telegram";
+            else if (/Reddit/i.test(ua)) inAppBrowser = "reddit";
+            else if (/Discord/i.test(ua)) inAppBrowser = "discord";
+            else if (/Viber/i.test(ua)) inAppBrowser = "viber";
+            else if (/WeChat|MicroMessenger/i.test(ua)) inAppBrowser = "wechat";
+            else if (/Brave/i.test(ua)) inAppBrowser = "none"; // Brave is a real browser
+            else if (/DuckDuckGo/i.test(ua)) inAppBrowser = "none";
+            else if (/GSA\//i.test(ua)) inAppBrowser = "google_app";
             else if (/MiuiBrowser/i.test(ua)) inAppBrowser = "miui";
-            else if (/SamsungBrowser/i.test(ua)) inAppBrowser = "samsung";
-            else if (/\bwv\b/.test(ua)) inAppBrowser = "webview"; // generic WebView
+            else if (/SamsungBrowser/i.test(ua)) inAppBrowser = "samsung_browser";
+            else if (/HuaweiBrowser/i.test(ua)) inAppBrowser = "huawei";
+            else if (/OPR\//i.test(ua)) inAppBrowser = "none"; // Opera is a real browser
+            else if (/UCBrowser/i.test(ua)) inAppBrowser = "uc_browser";
+            else if (/YaBrowser/i.test(ua)) inAppBrowser = "yandex";
+            else if (/Taboola/i.test(ua)) inAppBrowser = "taboola";
+            else if (/\bwv\b/.test(ua)) inAppBrowser = "webview_unknown";
 
             // Bot detection
             var isBot = "false";
@@ -159,6 +173,7 @@
                 country: country,
                 city: city,
                 geo_service: geoService,
+                user_agent: ua.substring(0, 250),
                 in_iframe: inIframe,
                 in_app_browser: inAppBrowser,
                 is_bot: isBot,

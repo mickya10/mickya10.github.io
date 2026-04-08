@@ -481,7 +481,7 @@
       "targets": [
         {
           "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `event_name=download_redirect` |= `in_app_browser=none` [$__range]))",
-          "legendFormat": "none (normal browser)",
+          "legendFormat": "normal browser",
           "refId": "A"
         },
         {
@@ -505,14 +505,34 @@
           "refId": "E"
         },
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `event_name=download_redirect` |= `in_app_browser=webview` [$__range]))",
-          "legendFormat": "webview",
+          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `event_name=download_redirect` |= `in_app_browser=whatsapp` [$__range]))",
+          "legendFormat": "whatsapp",
           "refId": "F"
         },
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `event_name=download_redirect` |= `in_app_browser=samsung` [$__range]))",
-          "legendFormat": "samsung",
+          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `event_name=download_redirect` |= `in_app_browser=telegram` [$__range]))",
+          "legendFormat": "telegram",
           "refId": "G"
+        },
+        {
+          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `event_name=download_redirect` |= `in_app_browser=google_app` [$__range]))",
+          "legendFormat": "google app",
+          "refId": "H"
+        },
+        {
+          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `event_name=download_redirect` |= `in_app_browser=taboola` [$__range]))",
+          "legendFormat": "taboola",
+          "refId": "I"
+        },
+        {
+          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `event_name=download_redirect` |= `in_app_browser=samsung_browser` [$__range]))",
+          "legendFormat": "samsung",
+          "refId": "J"
+        },
+        {
+          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `event_name=download_redirect` |= `in_app_browser=webview_unknown` [$__range]))",
+          "legendFormat": "webview (unknown)",
+          "refId": "K"
         }
       ],
       "options": {
@@ -734,8 +754,8 @@
       }
     },
     {
-      "title": "Fallbacks by Issue",
-      "description": "When redirect_button_shown fires, what issues were present",
+      "title": "Unknown WebViews & Fallbacks",
+      "description": "Raw events where in_app_browser=webview_unknown or redirect failed",
       "type": "logs",
       "gridPos": {
         "h": 6,
@@ -749,8 +769,12 @@
       },
       "targets": [
         {
-          "expr": "{service_name=\"Lyrika Installs\", kind=\"event\"} |= `event_name=redirect_button_shown`",
+          "expr": "{service_name=\"Lyrika Installs\", kind=\"event\"} |= `event_name=download_redirect` |= `webview_unknown`",
           "refId": "A"
+        },
+        {
+          "expr": "{service_name=\"Lyrika Installs\", kind=\"event\"} |= `event_name=redirect_button_shown`",
+          "refId": "B"
         }
       ],
       "options": {
