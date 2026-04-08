@@ -657,17 +657,17 @@
           "refId": "A"
         },
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `event_name=download_redirect` |= `issues=` |= `iframe` [$__range]))",
+          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `event_name=download_redirect` |= `in_iframe=true` [$__range]))",
           "legendFormat": "iframe",
           "refId": "B"
         },
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `event_name=download_redirect` |= `issues=` |= `not_android` [$__range]))",
+          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `event_name=download_redirect` |= `not_android` [$__range]))",
           "legendFormat": "not android",
           "refId": "C"
         },
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `event_name=download_redirect` |= `issues=` |= `in_app_` [$__range]))",
+          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `event_name=download_redirect` |= `in_app_browser=` != `in_app_browser=none` [$__range]))",
           "legendFormat": "in-app browser",
           "refId": "D"
         },
@@ -677,7 +677,7 @@
           "refId": "E"
         },
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `event_name=download_redirect` |= `issues=` |= `geo_failed` [$__range]))",
+          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |= `event_name=download_redirect` |= `geo_failed` [$__range]))",
           "legendFormat": "geo failed",
           "refId": "F"
         }
