@@ -74,7 +74,17 @@
             else if (/UCBrowser/i.test(ua)) inAppBrowser = "uc_browser";
             else if (/YaBrowser/i.test(ua)) inAppBrowser = "yandex";
             else if (/Taboola/i.test(ua)) inAppBrowser = "taboola";
-            else if (/\bwv\b/.test(ua)) inAppBrowser = "webview_unknown";
+            // Check referrer for known ad placements
+            var ref = document.referrer || "";
+            if (inAppBrowser === "none" && /\bwv\b/.test(ua)) {
+                if (/xiaomi-lockscreen|glance/i.test(ref)) inAppBrowser = "xiaomi_lockscreen";
+                else if (/taboola\.com/i.test(ref) && /\bwv\b/.test(ua)) inAppBrowser = "taboola_webview";
+                else if (/facebook\.com/i.test(ref)) inAppBrowser = "facebook";
+                else if (/instagram\.com/i.test(ref)) inAppBrowser = "instagram";
+                else if (/tiktok\.com/i.test(ref)) inAppBrowser = "tiktok";
+                else if (/twitter\.com|x\.com/i.test(ref)) inAppBrowser = "twitter";
+                else inAppBrowser = "webview_unknown";
+            }
 
             // Bot detection
             var isBot = "false";
