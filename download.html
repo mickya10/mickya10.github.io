@@ -78,7 +78,7 @@
             var ref = document.referrer || "";
             if (inAppBrowser === "none" && /\bwv\b/.test(ua)) {
                 if (/xiaomi-lockscreen|glance/i.test(ref)) inAppBrowser = "xiaomi_lockscreen";
-                else if (/taboola\.com/i.test(ref) && /\bwv\b/.test(ua)) inAppBrowser = "taboola_webview";
+                else if (/taboola/i.test(ref) || /taboola/i.test(source)) inAppBrowser = "taboola_webview";
                 else if (/facebook\.com/i.test(ref)) inAppBrowser = "facebook";
                 else if (/instagram\.com/i.test(ref)) inAppBrowser = "instagram";
                 else if (/tiktok\.com/i.test(ref)) inAppBrowser = "tiktok";
