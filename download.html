@@ -20,10 +20,13 @@
         <p id="status"><span class="spinner"></span>Redirecting to Google Play...</p>
         <a id="fallback" class="btn" style="display:none" href="https://play.google.com/store/apps/details?id=com.masoft.lyrika">Open Google Play</a>
     </div>
-    <script src="https://unpkg.com/@grafana/faro-web-sdk@2.2.4/dist/bundle/faro-web-sdk.iife.js"></script>
     <script>
         (async function() {
-            var FARO_URL = "https://faro-collector-prod-eu-central-0.grafana.net/collect/32b6bb54b1e3901e7ece472b5e31910f";
+            var LOKI_URL = "https://logs-prod-039.grafana.net/loki/api/v1/push";
+            var LOKI_AUTH = "MTUxNTA1NzpnbGNfZXlKdklqb2lNVFk1Tnpjd09TSXNJbTRpT2lKdFpYUnlhV056Wm5KdmJXRndjQzF0WlhSeWFXTnpabkp2YldGd2NDSXNJbXNpT2lJeE5HeEJkamM0YjIwMGIyVXdOVE51Wm1odU9XMVBPVm9pTENKdElqcDdJbklpT2lKd2NtOWtMV1YxTFdObGJuUnlZV3d0TUNKOWZRPT0=";
+            var APP_NAME = "Lyrika Installs";
+            var APP_VERSION = "2.1.1";
+            var ENV = "production";
             var PACKAGE = "com.masoft.lyrika";
             var PLAY_WEB = "https://play.google.com/store/apps/details?id=" + PACKAGE;
             var params = new URLSearchParams(window.location.search);
@@ -115,41 +118,37 @@
             if (!navigator.cookieEnabled) issues.push("cookies_disabled");
             if (typeof window.open !== "function") issues.push("no_window_open");
 
-            // ─── Init Faro ───
-            var faro = null;
-            var faroLoaded = "true";
-            try {
-                faro = window.GrafanaFaroWebSdk.initializeFaro({
-                    url: FARO_URL,
-                    app: { name: "Lyrika Installs", version: "2.1.0", environment: "production" },
-                });
-            } catch(e) { faroLoaded = "false"; issues.push("faro_failed"); }
-
-            // Helper: send event via sendBeacon (survives navigation)
-            function sendEvent(name, attrs) {
-                var payload = {
-                    events: [{
-                        name: name,
-                        domain: "browser",
-                        attributes: attrs || {},
-                        timestamp: new Date().toISOString()
-                    }],
-                    meta: {
-                        app: { name: "Lyrika Installs", version: "2.1.0", environment: "production" },
-                        browser: { name: ua.substring(0, 100) },
-                        page: { url: window.location.href }
-                    }
-                };
-                if (navigator.sendBeacon) {
-                    navigator.sendBeacon(FARO_URL, JSON.stringify(payload));
-                } else {
-                    try {
-                        var xhr = new XMLHttpRequest();
-                        xhr.open("POST", FARO_URL, false);
-                        xhr.setRequestHeader("Content-Type", "application/json");
-                        xhr.send(JSON.stringify(payload));
-                    } catch(e) {}
+            // Helper: build logfmt line + POST to Loki via keepalive fetch (survives navigation)
+            function escapeLogfmt(v) {
+                var s = String(v);
+                if (s.indexOf(" ") !== -1 || s.indexOf("=") !== -1 || s.indexOf('"') !== -1) {
+                    return '"' + s.replace(/\\/g, "\\\\").replace(/"/g, '\\"') + '"';
                 }
+                return s;
+            }
+            function sendEvent(name, attrs) {
+                var parts = ["event=" + escapeLogfmt(name), "app_version=" + escapeLogfmt(APP_VERSION)];
+                for (var k in attrs) {
+                    if (Object.prototype.hasOwnProperty.call(attrs, k)) {
+                        parts.push("event_data_" + k + "=" + escapeLogfmt(attrs[k]));
+                    }
+                }
+                var line = parts.join(" ");
+                var ts = String(Date.now()) + "000000";
+                var payload = {
+                    streams: [{
+                        stream: { service_name: APP_NAME, deployment_environment: ENV, kind: "event" },
+                        values: [[ts, line]]
+                    }]
+                };
+                try {
+                    fetch(LOKI_URL, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json", "Authorization": "Basic " + LOKI_AUTH },
+                        body: JSON.stringify(payload),
+                        keepalive: true
+                    });
+                } catch(e) {}
             }
 
             // ─── Geo lookup (HTTPS only) ───
@@ -188,14 +187,12 @@
                 in_app_browser: inAppBrowser,
                 is_bot: isBot,
                 browser: browserName,
-                faro_loaded: faroLoaded,
                 issues: issues.length > 0 ? issues.join(",") : "none",
                 issue_count: String(issues.length),
             };
 
             // ─── Track and redirect ───
             sendEvent("download_redirect", attrs);
-            if (faro) { try { faro.api.pushEvent("download_redirect", attrs); } catch(e) {} }
 
             // Don't redirect bots
             if (isBot === "true") {
