@@ -22,8 +22,8 @@
     </div>
     <script>
         (async function() {
-            // Faro collector (CORS-enabled) for Lyrika Installs app
-            var FARO_URL = "https://faro-collector-prod-eu-central-0.grafana.net/collect/32b6bb54b1e3901e7ece472b5e31910f";
+            // Cloudflare Worker relay → Grafana Cloud Loki.
+            var RELAY_URL = "https://loki-relay.miav55555.workers.dev";
             var APP_NAME = "Lyrika Installs";
             var APP_VERSION = "2.1.1";
             var ENV = "production";
@@ -118,31 +118,18 @@
             if (!navigator.cookieEnabled) issues.push("cookies_disabled");
             if (typeof window.open !== "function") issues.push("no_window_open");
 
-            // Faro requires X-Faro-Session-Id header, which triggers CORS preflight.
-            // Faro Cloud accepts the preflight, so fetch works and we can await the response.
-            var SESSION_ID = Math.random().toString(36).substring(2, 14) + Math.random().toString(36).substring(2, 6);
             async function sendEvent(name, attrs) {
                 var payload = {
-                    events: [{
-                        name: name,
-                        domain: "browser",
-                        attributes: attrs || {},
-                        timestamp: new Date().toISOString()
-                    }],
-                    meta: {
-                        app: { name: APP_NAME, version: APP_VERSION, environment: ENV },
-                        session: { id: SESSION_ID },
-                        browser: { name: ua.substring(0, 100) },
-                        page: { url: window.location.href }
-                    }
+                    service: APP_NAME,
+                    event: name,
+                    environment: ENV,
+                    app_version: APP_VERSION,
+                    attributes: attrs || {}
                 };
                 try {
-                    await fetch(FARO_URL, {
+                    await fetch(RELAY_URL, {
                         method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            "X-Faro-Session-Id": SESSION_ID
-                        },
+                        headers: { "Content-Type": "application/json" },
                         body: JSON.stringify(payload),
                         keepalive: true,
                         signal: AbortSignal.timeout(3000)
