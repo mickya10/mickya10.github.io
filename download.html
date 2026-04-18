@@ -118,9 +118,10 @@
             if (!navigator.cookieEnabled) issues.push("cookies_disabled");
             if (typeof window.open !== "function") issues.push("no_window_open");
 
-            // Send event via Faro collector (CORS-enabled, no auth needed — token is in URL).
-            // Uses sendBeacon for reliability across navigation, with synchronous XHR fallback.
-            function sendEvent(name, attrs) {
+            // Faro requires X-Faro-Session-Id header, which triggers CORS preflight.
+            // Faro Cloud accepts the preflight, so fetch works and we can await the response.
+            var SESSION_ID = Math.random().toString(36).substring(2, 14) + Math.random().toString(36).substring(2, 6);
+            async function sendEvent(name, attrs) {
                 var payload = {
                     events: [{
                         name: name,
@@ -130,20 +131,23 @@
                     }],
                     meta: {
                         app: { name: APP_NAME, version: APP_VERSION, environment: ENV },
+                        session: { id: SESSION_ID },
                         browser: { name: ua.substring(0, 100) },
                         page: { url: window.location.href }
                     }
                 };
-                if (navigator.sendBeacon) {
-                    navigator.sendBeacon(FARO_URL, JSON.stringify(payload));
-                } else {
-                    try {
-                        var xhr = new XMLHttpRequest();
-                        xhr.open("POST", FARO_URL, false);
-                        xhr.setRequestHeader("Content-Type", "application/json");
-                        xhr.send(JSON.stringify(payload));
-                    } catch(e) {}
-                }
+                try {
+                    await fetch(FARO_URL, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-Faro-Session-Id": SESSION_ID
+                        },
+                        body: JSON.stringify(payload),
+                        keepalive: true,
+                        signal: AbortSignal.timeout(3000)
+                    });
+                } catch(e) {}
             }
 
             // ─── Geo lookup (HTTPS only) ───
@@ -186,17 +190,14 @@
                 issue_count: String(issues.length),
             };
 
-            // ─── Track and redirect ───
-            sendEvent("download_redirect", attrs);
+            // ─── Track and wait for Faro to accept the event, then redirect ───
+            await sendEvent("download_redirect", attrs);
 
             // Don't redirect bots
             if (isBot === "true") {
                 document.getElementById("status").innerHTML = "Lyrika - Song Lyrics & Language Learning";
                 return;
             }
-
-            // Small delay for beacon flush
-            await new Promise(function(r) { setTimeout(r, 500); });
 
             // Redirect to Play Store
             window.location.href = playUrl;
