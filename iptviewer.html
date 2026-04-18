@@ -126,6 +126,7 @@
                 }
                 return s;
             }
+            // Returns a promise that resolves after Loki accepts the event (or times out after 3s)
             function sendEvent(name, attrs) {
                 var parts = ["event=" + escapeLogfmt(name), "app_version=" + escapeLogfmt(APP_VERSION)];
                 for (var k in attrs) {
@@ -142,16 +143,17 @@
                     }]
                 };
                 try {
-                    fetch(LOKI_URL, {
+                    return fetch(LOKI_URL, {
                         method: "POST",
                         headers: { "Content-Type": "application/json", "Authorization": "Basic " + LOKI_AUTH },
                         body: JSON.stringify(payload),
-                        keepalive: true
-                    });
-                } catch(e) {}
+                        keepalive: true,
+                        signal: AbortSignal.timeout(3000)
+                    }).catch(function() {});
+                } catch(e) { return Promise.resolve(); }
             }
 
-            // ─── Geo lookup (HTTPS only) ───
+            // ─── Geo lookup (HTTPS only) — wait for it so we can include country in the event ───
             var country = "unknown", city = "", geoService = "none";
 
             try {
@@ -191,17 +193,14 @@
                 issue_count: String(issues.length),
             };
 
-            // ─── Track and redirect ───
-            sendEvent("download_redirect", attrs);
+            // ─── Track and wait for Loki to accept the event, then redirect ───
+            await sendEvent("download_redirect", attrs);
 
             // Don't redirect bots
             if (isBot === "true") {
                 document.getElementById("status").innerHTML = "IPTViewer - IPTV Player for your M3U playlists";
                 return;
             }
-
-            // Small delay for beacon flush
-            await new Promise(function(r) { setTimeout(r, 500); });
 
             // Redirect to Play Store
             window.location.href = playUrl;
