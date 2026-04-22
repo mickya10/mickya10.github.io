@@ -52,17 +52,6 @@
     const context = cast.framework.CastReceiverContext.getInstance();
     const playerManager = context.getPlayerManager();
 
-    // HTTP streams can't be fetched from this HTTPS page (Chromium mixed-content
-    // blocking). Proxy them through a Cloudflare Worker that upgrades HTTP → HTTPS.
-    const STREAM_PROXY = "https://stream-proxy.miav55555.workers.dev/?url=";
-    function proxyIfNeeded(url) {
-      if (!url) return url;
-      if (url.startsWith("http://")) {
-        return STREAM_PROXY + encodeURIComponent(url);
-      }
-      return url;
-    }
-
     let currentMpegts = null;
     let currentHls = null;
 
@@ -110,11 +99,10 @@
           setStatus("Loading: " + (url || ""));
 
           if (isMpegTs(url, contentType) && window.mpegts && mpegts.isSupported()) {
-            const effectiveUrl = proxyIfNeeded(url);
-            setStatus("MPEG-TS via mpegts.js: " + effectiveUrl.slice(0, 80));
+            setStatus("MPEG-TS via mpegts.js: " + url.slice(0, 80));
             const player = mpegts.createPlayer({
               type: "mpegts",
-              url: effectiveUrl,
+              url: url,
               isLive: true,
               cors: true
             }, {
@@ -151,13 +139,8 @@
             return loadRequest;
           }
 
-          // For HLS and anything else, let CAF handle natively — but proxy HTTP URLs to avoid mixed-content.
-          const effectiveUrl = proxyIfNeeded(url);
-          if (effectiveUrl !== url) {
-            loadRequest.media.contentUrl = effectiveUrl;
-            loadRequest.media.contentId = effectiveUrl;
-          }
-          setStatus((isHls(url, contentType) ? "HLS" : "Native") + " via CAF: " + effectiveUrl.slice(0, 80));
+          // Let CAF handle HLS / MP4 / DASH natively.
+          setStatus((isHls(url, contentType) ? "HLS" : "Native") + " via CAF: " + (url || "").slice(0, 80));
           return loadRequest;
         } catch (e) {
           setStatus("Interceptor error: " + e.message);
