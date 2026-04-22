@@ -52,6 +52,17 @@
     const context = cast.framework.CastReceiverContext.getInstance();
     const playerManager = context.getPlayerManager();
 
+    // HTTP streams can't be fetched from this HTTPS page (Chromium mixed-content
+    // blocking). Proxy them through a Cloudflare Worker that upgrades HTTP → HTTPS.
+    const STREAM_PROXY = "https://stream-proxy.miav55555.workers.dev/?url=";
+    function proxyIfNeeded(url) {
+      if (!url) return url;
+      if (url.startsWith("http://")) {
+        return STREAM_PROXY + encodeURIComponent(url);
+      }
+      return url;
+    }
+
     let currentMpegts = null;
     let currentHls = null;
 
@@ -99,10 +110,11 @@
           setStatus("Loading: " + (url || ""));
 
           if (isMpegTs(url, contentType) && window.mpegts && mpegts.isSupported()) {
-            setStatus("MPEG-TS via mpegts.js");
+            const effectiveUrl = proxyIfNeeded(url);
+            setStatus("MPEG-TS via mpegts.js: " + effectiveUrl.slice(0, 80));
             const player = mpegts.createPlayer({
               type: "mpegts",
-              url: url,
+              url: effectiveUrl,
               isLive: true,
               cors: true
             }, {
@@ -114,8 +126,18 @@
               stashInitialSize: 128 * 1024
             });
             player.on(mpegts.Events.ERROR, (type, details, info) => {
-              setStatus("mpegts error: " + type + " / " + details);
+              setStatus("mpegts error: " + type + " / " + details + " — " + (info && info.msg ? info.msg : ""));
               console.error("[mpegts error]", type, details, info);
+            });
+            player.on(mpegts.Events.LOADING_COMPLETE, () => setStatus("mpegts: loading complete"));
+            player.on(mpegts.Events.MEDIA_INFO, (info) => {
+              setStatus("mpegts: media info — " + JSON.stringify(info).slice(0, 140));
+              console.log("[mpegts MEDIA_INFO]", info);
+            });
+            video.addEventListener("error", (e) => {
+              const err = video.error;
+              setStatus("video error: " + (err ? err.code + "/" + err.message : "unknown"));
+              console.error("[video error]", err);
             });
             player.attachMediaElement(video);
             player.load();
@@ -129,14 +151,13 @@
             return loadRequest;
           }
 
-          if (isHls(url, contentType)) {
-            // Native Safari/Chromecast HLS handling usually works; let CAF do it.
-            setStatus("HLS via CAF");
-            return loadRequest;
+          // For HLS and anything else, let CAF handle natively — but proxy HTTP URLs to avoid mixed-content.
+          const effectiveUrl = proxyIfNeeded(url);
+          if (effectiveUrl !== url) {
+            loadRequest.media.contentUrl = effectiveUrl;
+            loadRequest.media.contentId = effectiveUrl;
           }
-
-          // Fallback: let CAF try native
-          setStatus("Native via CAF");
+          setStatus((isHls(url, contentType) ? "HLS" : "Native") + " via CAF: " + effectiveUrl.slice(0, 80));
           return loadRequest;
         } catch (e) {
           setStatus("Interceptor error: " + e.message);
