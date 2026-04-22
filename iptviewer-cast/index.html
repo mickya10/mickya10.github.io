@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>IPTViewer Cast Receiver</title>
+  <style>
+    html, body {
+      margin: 0; padding: 0; height: 100%; width: 100%;
+      background: #000; color: #fff; font-family: sans-serif;
+      overflow: hidden;
+    }
+    #video {
+      position: absolute; top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: #000; object-fit: contain;
+    }
+    #status {
+      position: absolute; bottom: 24px; left: 24px;
+      font-size: 14px; opacity: 0.6;
+      text-shadow: 0 0 4px rgba(0,0,0,0.8);
+      pointer-events: none;
+    }
+    #logo {
+      position: absolute; top: 24px; left: 24px;
+      font-size: 18px; font-weight: 600; color: #60a5fa;
+      text-shadow: 0 0 6px rgba(0,0,0,0.9);
+      pointer-events: none;
+    }
+  </style>
+
+  <!-- Cast Receiver Framework (CAF) v3 -->
+  <script src="https://www.gstatic.com/cast/sdk/libs/caf_receiver/v3/cast_receiver_framework.js"></script>
+  <!-- mpegts.js for MPEG-TS playback -->
+  <script src="https://cdn.jsdelivr.net/npm/mpegts.js@1.8.0/dist/mpegts.min.js"></script>
+  <!-- hls.js for HLS playback (CAF already handles HLS, but kept as fallback) -->
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.17/dist/hls.min.js"></script>
+</head>
+<body>
+  <video id="video" autoplay playsinline></video>
+  <div id="logo">IPTViewer</div>
+  <div id="status"></div>
+
+  <script>
+    const video = document.getElementById("video");
+    const statusEl = document.getElementById("status");
+    const logEl = [];
+    function setStatus(msg) {
+      statusEl.textContent = msg;
+      console.log("[receiver]", msg);
+    }
+
+    const context = cast.framework.CastReceiverContext.getInstance();
+    const playerManager = context.getPlayerManager();
+
+    let currentMpegts = null;
+    let currentHls = null;
+
+    function tearDown() {
+      if (currentMpegts) {
+        try { currentMpegts.pause(); } catch {}
+        try { currentMpegts.unload(); } catch {}
+        try { currentMpegts.detachMediaElement(); } catch {}
+        try { currentMpegts.destroy(); } catch {}
+        currentMpegts = null;
+      }
+      if (currentHls) {
+        try { currentHls.destroy(); } catch {}
+        currentHls = null;
+      }
+    }
+
+    function isMpegTs(url, contentType) {
+      if (contentType && (contentType === "video/mp2t" || contentType === "video/MP2T")) return true;
+      if (!url) return false;
+      const lower = url.toLowerCase();
+      if (lower.endsWith(".ts")) return true;
+      if (lower.includes("output=ts")) return true;
+      if (lower.includes("type=m3u_plus") && lower.includes("output=ts")) return true;
+      // Xtream-codes live URLs like /live/.../channelId.ts
+      if (/\/live\/[^/]+\/[^/]+\/\d+(\.ts)?$/.test(lower)) return true;
+      return false;
+    }
+
+    function isHls(url, contentType) {
+      if (contentType && (contentType === "application/x-mpegurl" || contentType === "application/vnd.apple.mpegurl")) return true;
+      if (!url) return false;
+      return /\.m3u8(\?|$)/i.test(url);
+    }
+
+    // Intercept LOAD requests: route MPEG-TS through mpegts.js, let CAF handle everything else natively.
+    playerManager.setMessageInterceptor(
+      cast.framework.messages.MessageType.LOAD,
+      (loadRequest) => {
+        try {
+          tearDown();
+          const media = loadRequest.media;
+          const url = media && media.contentUrl ? media.contentUrl : (media && media.contentId);
+          const contentType = media && media.contentType;
+          setStatus("Loading: " + (url || ""));
+
+          if (isMpegTs(url, contentType) && window.mpegts && mpegts.isSupported()) {
+            setStatus("MPEG-TS via mpegts.js");
+            const player = mpegts.createPlayer({
+              type: "mpegts",
+              url: url,
+              isLive: true,
+              cors: true
+            }, {
+              enableWorker: true,
+              liveBufferLatencyChasing: true,
+              liveBufferLatencyMaxLatency: 8.0,
+              liveBufferLatencyMinRemain: 1.0,
+              autoCleanupSourceBuffer: true,
+              stashInitialSize: 128 * 1024
+            });
+            player.on(mpegts.Events.ERROR, (type, details, info) => {
+              setStatus("mpegts error: " + type + " / " + details);
+              console.error("[mpegts error]", type, details, info);
+            });
+            player.attachMediaElement(video);
+            player.load();
+            currentMpegts = player;
+            // Tell CAF playback is handled; still return the request so it updates UI state.
+            // We clear contentUrl so CAF doesn't also try to load it natively.
+            loadRequest.media.contentUrl = "";
+            loadRequest.media.contentId = "";
+            // Fire play manually
+            setTimeout(() => { video.play().catch((e) => setStatus("play err: " + e.message)); }, 50);
+            return loadRequest;
+          }
+
+          if (isHls(url, contentType)) {
+            // Native Safari/Chromecast HLS handling usually works; let CAF do it.
+            setStatus("HLS via CAF");
+            return loadRequest;
+          }
+
+          // Fallback: let CAF try native
+          setStatus("Native via CAF");
+          return loadRequest;
+        } catch (e) {
+          setStatus("Interceptor error: " + e.message);
+          console.error(e);
+          return loadRequest;
+        }
+      }
+    );
+
+    // Surface errors for debugging
+    playerManager.addEventListener(
+      cast.framework.events.EventType.ERROR,
+      (err) => {
+        setStatus("Player error: " + (err.detailedErrorCode || err.type));
+        console.error("[player error]", err);
+      }
+    );
+
+    // Start the receiver
+    const options = new cast.framework.CastReceiverOptions();
+    options.maxInactivity = 3600;  // keep receiver alive while idle
+    options.disableIdleTimeout = true;
+    context.start(options);
+
+    setStatus("Ready — waiting for LOAD request");
+  </script>
+</body>
+</html>
