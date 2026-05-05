@@ -1975,6 +1975,125 @@
         }
       ],
       "type": "piechart"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "grafanacloud-logs"
+      },
+      "description": "All referring hostnames (with placement for Taboola), sorted by event count. Long-tail visibility beyond the top-N piecharts.",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto",
+            "filterable": true,
+            "inspect": false
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #A"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Events"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "referrer_domain"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Referrer"
+              },
+              {
+                "id": "custom.width",
+                "value": 500
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 24,
+        "x": 0,
+        "y": 69
+      },
+      "id": 4,
+      "options": {
+        "footer": {
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "Events"
+          }
+        ]
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "grafanacloud-logs"
+          },
+          "expr": "sum by (referrer_domain) (count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\" |= `download_redirect` | regexp `event_data_referrer_domain=(?P<referrer_domain>[^\" ]+)` [$__range]))",
+          "format": "table",
+          "instant": false,
+          "legendFormat": "{{referrer_domain}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Referrer Domains \u2014 Full List",
+      "transformations": [
+        {
+          "id": "reduce",
+          "options": {
+            "includeTimeField": false,
+            "labelsToFields": true,
+            "mode": "reduceFields",
+            "reducers": [
+              "lastNotNull"
+            ]
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {},
+            "indexByName": {
+              "Value": 1,
+              "referrer_domain": 0
+            },
+            "renameByName": {}
+          }
+        }
+      ],
+      "type": "table"
     }
   ],
   "schemaVersion": 39,
@@ -2034,5 +2153,5 @@
   },
   "title": "Lyrika Installs v2",
   "uid": "lyrika-installs-v2",
-  "version": 17
+  "version": 18
 }
