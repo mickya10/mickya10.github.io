@@ -26,7 +26,7 @@
             // holds the Loki auth token server-side.
             var RELAY_URL = "https://loki-relay.miav55555.workers.dev";
             var APP_NAME = "IPTViewer Installs";
-            var APP_VERSION = "3.7";
+            var APP_VERSION = "3.8";
             var ENV = "production";
             var PACKAGE = "com.masoft.iptviewer";
             var PLAY_WEB = "https://play.google.com/store/apps/details?id=" + PACKAGE;
@@ -184,6 +184,18 @@
 
             if (country === "unknown") issues.push("geo_failed");
 
+            // ─── Combined traffic attribution ───
+            // Roll the strongest available signal into one field for the
+            // dashboard, in priority order:
+            //   1. in-app webview (Facebook / Instagram / TikTok / …)
+            //   2. browser referrer root (eTLD+1 like facebook.com)
+            //   3. "(direct)"
+            // utm_source is intentionally excluded — we set it ourselves on
+            // outbound campaign links, so it tells us nothing new.
+            var trafficSource = "(direct)";
+            if (inAppBrowser !== "none") trafficSource = "app:" + inAppBrowser;
+            else if (refRoot !== "(direct)" && refRoot !== "(invalid)") trafficSource = "web:" + refRoot;
+
             // ─── Build attributes ───
             var attrs = {
                 source: source,
@@ -192,6 +204,7 @@
                 referrer: document.referrer || "",
                 referrer_domain: refDomain,
                 referrer_root: refRoot,
+                traffic_source: trafficSource,
                 device: isMobile ? "Mobile" : "Desktop",
                 platform: platform,
                 country: country,

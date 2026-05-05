@@ -1924,6 +1924,87 @@
         }
       ],
       "type": "barchart"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "grafanacloud-logs"
+      },
+      "description": "Single roll-up of where users came from. Priority: in-app webview > browser referrer (eTLD+1) > (direct). Excludes utm_source (we set it ourselves).",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "fillOpacity": 80,
+            "lineWidth": 1
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 70
+      },
+      "id": 3,
+      "options": {
+        "barRadius": 0,
+        "barWidth": 0.7,
+        "fullHighlight": false,
+        "groupWidth": 0.8,
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "orientation": "horizontal",
+        "showValue": "always",
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "xTickLabelRotation": 0
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "grafanacloud-logs"
+          },
+          "expr": "topk(25, sum by (traffic_source) (count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\" |= `download_redirect` | regexp `event_data_traffic_source=(?P<traffic_source>[^\" ]+)` [$__range])))",
+          "instant": true,
+          "legendFormat": "{{traffic_source}}",
+          "range": false,
+          "refId": "A"
+        }
+      ],
+      "title": "Traffic Source \u2014 Combined",
+      "transformations": [
+        {
+          "id": "reduce",
+          "options": {
+            "reducers": [
+              "lastNotNull"
+            ]
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "sort": [
+              {
+                "desc": true,
+                "field": "Last *"
+              }
+            ]
+          }
+        }
+      ],
+      "type": "barchart"
     }
   ],
   "schemaVersion": 39,
@@ -1983,5 +2064,5 @@
   },
   "title": "Lyrika Installs v2",
   "uid": "lyrika-installs-v2",
-  "version": 15
+  "version": 16
 }
