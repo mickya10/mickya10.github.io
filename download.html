@@ -25,7 +25,7 @@
             // Cloudflare Worker relay → Grafana Cloud Loki.
             var RELAY_URL = "https://loki-relay.miav55555.workers.dev";
             var APP_NAME = "Lyrika Installs";
-            var APP_VERSION = "2.3";
+            var APP_VERSION = "2.4";
             var ENV = "production";
             var PACKAGE = "com.masoft.lyrika";
             var PLAY_WEB = "https://play.google.com/store/apps/details?id=" + PACKAGE;
@@ -88,7 +88,8 @@
             var refRoot = "(direct)";
             if (ref) {
                 try {
-                    var host = new URL(ref).hostname.toLowerCase();
+                    var refUrl = new URL(ref);
+                    var host = refUrl.hostname.toLowerCase();
                     refDomain = host || "(invalid)";
                     var parts = host.split(".");
                     if (parts.length >= 2) {
@@ -99,6 +100,21 @@
                     } else {
                         refRoot = host;
                     }
+
+                    // Taboola routes click traffic through trc.* and api.* — same host
+                    // for thousands of placements. The placement name (publisher slot)
+                    // sits in the URL path, so surface it as part of refDomain so the
+                    // dashboard shows traffic per placement instead of one giant bucket.
+                    var pathSegs = refUrl.pathname.split("/").filter(Boolean);
+                    var placement = "";
+                    if (host === "trc.taboola.com" && pathSegs.length >= 1) {
+                        // /<placement>/log/3/click
+                        placement = pathSegs[0];
+                    } else if (host === "api.taboola.com" && pathSegs.length >= 3 && pathSegs[1] === "json") {
+                        // /2.0/json/<placement>/recommendations.notify-click
+                        placement = pathSegs[2];
+                    }
+                    if (placement) refDomain = host + "/" + placement;
                 } catch(e) {
                     refDomain = "(invalid)";
                     refRoot = "(invalid)";
