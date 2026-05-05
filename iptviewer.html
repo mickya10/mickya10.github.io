@@ -26,7 +26,7 @@
             // holds the Loki auth token server-side.
             var RELAY_URL = "https://loki-relay.miav55555.workers.dev";
             var APP_NAME = "IPTViewer Installs";
-            var APP_VERSION = "3.6";
+            var APP_VERSION = "3.7";
             var ENV = "production";
             var PACKAGE = "com.masoft.iptviewer";
             var PLAY_WEB = "https://play.google.com/store/apps/details?id=" + PACKAGE;
@@ -80,6 +80,32 @@
             else if (/Taboola/i.test(ua)) inAppBrowser = "taboola";
 
             var ref = document.referrer || "";
+
+            // Extract referrer domain (full hostname) and root (eTLD+1) for the dashboard.
+            // Full Public Suffix List would be too bulky here; this heuristic covers the
+            // common multi-label TLDs we see in real referrer traffic. Bare hostname is
+            // always reported separately, so the long tail is still attributable.
+            var refDomain = "(direct)";
+            var refRoot = "(direct)";
+            if (ref) {
+                try {
+                    var host = new URL(ref).hostname.toLowerCase();
+                    refDomain = host || "(invalid)";
+                    var parts = host.split(".");
+                    if (parts.length >= 2) {
+                        var multiLabelTlds = /^(co|com|org|net|gov|edu|ac|or|ne|in|me|tv)\.[a-z]{2}$/;
+                        var lastTwo = parts.slice(-2).join(".");
+                        var lastThree = parts.slice(-3).join(".");
+                        refRoot = (parts.length >= 3 && multiLabelTlds.test(lastTwo)) ? lastThree : lastTwo;
+                    } else {
+                        refRoot = host;
+                    }
+                } catch(e) {
+                    refDomain = "(invalid)";
+                    refRoot = "(invalid)";
+                }
+            }
+
             if (inAppBrowser === "none" && /\bwv\b/.test(ua)) {
                 if (/xiaomi-lockscreen|glance/i.test(ref)) inAppBrowser = "xiaomi_lockscreen";
                 else if (/taboola/i.test(ref) || /taboola/i.test(source)) inAppBrowser = "taboola_webview";
@@ -164,6 +190,8 @@
                 medium: medium,
                 campaign: campaign,
                 referrer: document.referrer || "",
+                referrer_domain: refDomain,
+                referrer_root: refRoot,
                 device: isMobile ? "Mobile" : "Desktop",
                 platform: platform,
                 country: country,

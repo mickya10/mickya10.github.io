@@ -4,7 +4,7 @@
   },
   "editable": true,
   "graphTooltip": 1,
-  "id": 1685307214274560,
+  "id": 930812486950912,
   "links": [],
   "panels": [
     {
@@ -48,7 +48,7 @@
       },
       "targets": [
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `download_redirect` [$__range]))",
+          "expr": "sum(count_over_time({service_name=\"IPTViewer Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `download_redirect` [$__range]))",
           "instant": true,
           "refId": "A"
         }
@@ -86,7 +86,7 @@
       },
       "targets": [
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `redirect_button_shown` [$__range]))",
+          "expr": "sum(count_over_time({service_name=\"IPTViewer Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `redirect_button_shown` [$__range]))",
           "instant": true,
           "refId": "A"
         }
@@ -124,7 +124,7 @@
       },
       "targets": [
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `redirect_manual_click` [$__range]))",
+          "expr": "sum(count_over_time({service_name=\"IPTViewer Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `redirect_manual_click` [$__range]))",
           "instant": true,
           "refId": "A"
         }
@@ -162,7 +162,7 @@
       },
       "targets": [
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `download_redirect` |= `unknown` [$__range]))",
+          "expr": "sum(count_over_time({service_name=\"IPTViewer Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `download_redirect` |= `unknown` [$__range]))",
           "instant": true,
           "refId": "A"
         }
@@ -194,17 +194,17 @@
       "interval": "30m",
       "targets": [
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `download_redirect` [$__interval]))",
+          "expr": "sum(count_over_time({service_name=\"IPTViewer Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `download_redirect` [$__interval]))",
           "legendFormat": "redirects",
           "refId": "A"
         },
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `redirect_button_shown` [$__interval]))",
+          "expr": "sum(count_over_time({service_name=\"IPTViewer Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `redirect_button_shown` [$__interval]))",
           "legendFormat": "fallback shown",
           "refId": "B"
         },
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `redirect_manual_click` [$__interval]))",
+          "expr": "sum(count_over_time({service_name=\"IPTViewer Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `redirect_manual_click` [$__interval]))",
           "legendFormat": "manual click",
           "refId": "C"
         }
@@ -305,7 +305,7 @@
       },
       "targets": [
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `download_redirect` [$__range]))",
+          "expr": "sum(count_over_time({service_name=\"IPTViewer Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `download_redirect` [$__range]))",
           "instant": true,
           "legendFormat": "auto redirect",
           "queryType": "instant",
@@ -313,7 +313,7 @@
           "refId": "A"
         },
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `redirect_button_shown` [$__range]))",
+          "expr": "sum(count_over_time({service_name=\"IPTViewer Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `redirect_button_shown` [$__range]))",
           "instant": true,
           "legendFormat": "needed fallback",
           "queryType": "instant",
@@ -321,7 +321,7 @@
           "refId": "B"
         },
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `redirect_manual_click` [$__range]))",
+          "expr": "sum(count_over_time({service_name=\"IPTViewer Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `redirect_manual_click` [$__range]))",
           "instant": true,
           "legendFormat": "manual click",
           "queryType": "instant",
@@ -415,7 +415,7 @@
       },
       "targets": [
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `download_redirect` |= `android` [$__range]))",
+          "expr": "sum(count_over_time({service_name=\"IPTViewer Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `download_redirect` |= `android` [$__range]))",
           "instant": true,
           "legendFormat": "android",
           "queryType": "instant",
@@ -423,7 +423,7 @@
           "refId": "A"
         },
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `download_redirect` |= `event_data_platform=ios` [$__range]))",
+          "expr": "sum(count_over_time({service_name=\"IPTViewer Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `download_redirect` |= `event_data_platform=ios` [$__range]))",
           "instant": true,
           "legendFormat": "ios",
           "queryType": "instant",
@@ -431,7 +431,7 @@
           "refId": "B"
         },
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `download_redirect` |= `event_data_platform=desktop` [$__range]))",
+          "expr": "sum(count_over_time({service_name=\"IPTViewer Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `download_redirect` |= `event_data_platform=desktop` [$__range]))",
           "instant": true,
           "legendFormat": "desktop",
           "queryType": "instant",
@@ -488,7 +488,7 @@
       },
       "targets": [
         {
-          "expr": "sum by (source) (count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `download_redirect` | regexp `event_data_source=(?P<source>\\w+)` [$__range]))",
+          "expr": "sum by (source) (count_over_time({service_name=\"IPTViewer Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `download_redirect` | regexp `event_data_source=(?P<source>\\w+)` [$__range]))",
           "instant": false,
           "legendFormat": "{{source}}",
           "range": true,
@@ -556,7 +556,7 @@
       },
       "targets": [
         {
-          "expr": "sum by (campaign) (count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `download_redirect` | regexp `event_data_campaign=(?P<campaign>[^\" ]+)` [$__range]))",
+          "expr": "sum by (campaign) (count_over_time({service_name=\"IPTViewer Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `download_redirect` | regexp `event_data_campaign=(?P<campaign>[^\" ]+)` [$__range]))",
           "instant": false,
           "legendFormat": "{{campaign}}",
           "range": true,
@@ -634,7 +634,7 @@
       },
       "targets": [
         {
-          "expr": "sum by (country) (count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `event=download_redirect` | regexp `event_data_country=(?P<country>[^\" ]+)` [$__range]))",
+          "expr": "sum by (country) (count_over_time({service_name=\"IPTViewer Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `event=download_redirect` | regexp `event_data_country=(?P<country>[^\" ]+)` [$__range]))",
           "instant": false,
           "legendFormat": "{{country}}",
           "range": true,
@@ -702,7 +702,7 @@
       },
       "targets": [
         {
-          "expr": "sum by (geo) (count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `download_redirect` | regexp `event_data_geo_service=(?P<geo>\\w+)` [$__range]))",
+          "expr": "sum by (geo) (count_over_time({service_name=\"IPTViewer Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `download_redirect` | regexp `event_data_geo_service=(?P<geo>\\w+)` [$__range]))",
           "instant": false,
           "legendFormat": "{{geo}}",
           "range": true,
@@ -914,7 +914,7 @@
       },
       "targets": [
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `event=download_redirect` |= `event_data_in_app_browser=none` [$__range]))",
+          "expr": "sum(count_over_time({service_name=\"IPTViewer Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `event=download_redirect` |= `event_data_in_app_browser=none` [$__range]))",
           "instant": true,
           "legendFormat": "normal browser",
           "queryType": "instant",
@@ -922,7 +922,7 @@
           "refId": "A"
         },
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `event=download_redirect` |= `event_data_in_app_browser=facebook` [$__range]))",
+          "expr": "sum(count_over_time({service_name=\"IPTViewer Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `event=download_redirect` |= `event_data_in_app_browser=facebook` [$__range]))",
           "instant": true,
           "legendFormat": "facebook",
           "queryType": "instant",
@@ -930,7 +930,7 @@
           "refId": "B"
         },
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `event=download_redirect` |= `event_data_in_app_browser=instagram` [$__range]))",
+          "expr": "sum(count_over_time({service_name=\"IPTViewer Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `event=download_redirect` |= `event_data_in_app_browser=instagram` [$__range]))",
           "instant": true,
           "legendFormat": "instagram",
           "queryType": "instant",
@@ -938,7 +938,7 @@
           "refId": "C"
         },
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `event=download_redirect` |= `event_data_in_app_browser=tiktok` [$__range]))",
+          "expr": "sum(count_over_time({service_name=\"IPTViewer Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `event=download_redirect` |= `event_data_in_app_browser=tiktok` [$__range]))",
           "instant": true,
           "legendFormat": "tiktok",
           "queryType": "instant",
@@ -946,7 +946,7 @@
           "refId": "D"
         },
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `event=download_redirect` |= `event_data_in_app_browser=twitter` [$__range]))",
+          "expr": "sum(count_over_time({service_name=\"IPTViewer Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `event=download_redirect` |= `event_data_in_app_browser=twitter` [$__range]))",
           "instant": true,
           "legendFormat": "twitter",
           "queryType": "instant",
@@ -954,7 +954,7 @@
           "refId": "E"
         },
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `event=download_redirect` |= `event_data_in_app_browser=whatsapp` [$__range]))",
+          "expr": "sum(count_over_time({service_name=\"IPTViewer Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `event=download_redirect` |= `event_data_in_app_browser=whatsapp` [$__range]))",
           "instant": true,
           "legendFormat": "whatsapp",
           "queryType": "instant",
@@ -962,7 +962,7 @@
           "refId": "F"
         },
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `event=download_redirect` |= `event_data_in_app_browser=telegram` [$__range]))",
+          "expr": "sum(count_over_time({service_name=\"IPTViewer Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `event=download_redirect` |= `event_data_in_app_browser=telegram` [$__range]))",
           "instant": true,
           "legendFormat": "telegram",
           "queryType": "instant",
@@ -970,7 +970,7 @@
           "refId": "G"
         },
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `event=download_redirect` |= `event_data_in_app_browser=google_app` [$__range]))",
+          "expr": "sum(count_over_time({service_name=\"IPTViewer Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `event=download_redirect` |= `event_data_in_app_browser=google_app` [$__range]))",
           "instant": true,
           "legendFormat": "google app",
           "queryType": "instant",
@@ -978,7 +978,7 @@
           "refId": "H"
         },
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `event=download_redirect` |= `event_data_in_app_browser=taboola` [$__range]))",
+          "expr": "sum(count_over_time({service_name=\"IPTViewer Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `event=download_redirect` |= `event_data_in_app_browser=taboola` [$__range]))",
           "instant": true,
           "legendFormat": "taboola",
           "queryType": "instant",
@@ -986,7 +986,7 @@
           "refId": "I"
         },
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `event=download_redirect` |= `event_data_in_app_browser=samsung_browser` [$__range]))",
+          "expr": "sum(count_over_time({service_name=\"IPTViewer Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `event=download_redirect` |= `event_data_in_app_browser=samsung_browser` [$__range]))",
           "instant": true,
           "legendFormat": "samsung",
           "queryType": "instant",
@@ -994,7 +994,7 @@
           "refId": "J"
         },
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `event=download_redirect` |= `event_data_in_app_browser=webview_unknown` [$__range]))",
+          "expr": "sum(count_over_time({service_name=\"IPTViewer Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `event=download_redirect` |= `event_data_in_app_browser=webview_unknown` [$__range]))",
           "instant": true,
           "legendFormat": "webview (unknown)",
           "queryType": "instant",
@@ -1076,7 +1076,7 @@
       },
       "targets": [
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `event=download_redirect` |= `event_data_in_iframe=true` [$__range]))",
+          "expr": "sum(count_over_time({service_name=\"IPTViewer Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `event=download_redirect` |= `event_data_in_iframe=true` [$__range]))",
           "instant": true,
           "legendFormat": "in iframe",
           "queryType": "instant",
@@ -1084,7 +1084,7 @@
           "refId": "A"
         },
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `event=download_redirect` |= `event_data_in_iframe=false` [$__range]))",
+          "expr": "sum(count_over_time({service_name=\"IPTViewer Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `event=download_redirect` |= `event_data_in_iframe=false` [$__range]))",
           "instant": true,
           "legendFormat": "not iframe",
           "queryType": "instant",
@@ -1238,7 +1238,7 @@
       },
       "targets": [
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `event=download_redirect` |= `event_data_browser=chrome ` [$__range]))",
+          "expr": "sum(count_over_time({service_name=\"IPTViewer Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `event=download_redirect` |= `event_data_browser=chrome ` [$__range]))",
           "instant": true,
           "legendFormat": "chrome",
           "queryType": "instant",
@@ -1246,7 +1246,7 @@
           "refId": "A"
         },
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `event=download_redirect` |= `event_data_browser=safari` [$__range]))",
+          "expr": "sum(count_over_time({service_name=\"IPTViewer Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `event=download_redirect` |= `event_data_browser=safari` [$__range]))",
           "instant": true,
           "legendFormat": "safari",
           "queryType": "instant",
@@ -1254,7 +1254,7 @@
           "refId": "B"
         },
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `event=download_redirect` |= `event_data_browser=firefox` [$__range]))",
+          "expr": "sum(count_over_time({service_name=\"IPTViewer Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `event=download_redirect` |= `event_data_browser=firefox` [$__range]))",
           "instant": true,
           "legendFormat": "firefox",
           "queryType": "instant",
@@ -1262,7 +1262,7 @@
           "refId": "C"
         },
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `event=download_redirect` |= `event_data_browser=edge` [$__range]))",
+          "expr": "sum(count_over_time({service_name=\"IPTViewer Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `event=download_redirect` |= `event_data_browser=edge` [$__range]))",
           "instant": true,
           "legendFormat": "edge",
           "queryType": "instant",
@@ -1270,7 +1270,7 @@
           "refId": "D"
         },
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `event=download_redirect` |= `event_data_browser=samsung` [$__range]))",
+          "expr": "sum(count_over_time({service_name=\"IPTViewer Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `event=download_redirect` |= `event_data_browser=samsung` [$__range]))",
           "instant": true,
           "legendFormat": "samsung",
           "queryType": "instant",
@@ -1278,7 +1278,7 @@
           "refId": "E"
         },
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `event=download_redirect` |= `event_data_browser=opera` [$__range]))",
+          "expr": "sum(count_over_time({service_name=\"IPTViewer Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `event=download_redirect` |= `event_data_browser=opera` [$__range]))",
           "instant": true,
           "legendFormat": "opera",
           "queryType": "instant",
@@ -1286,7 +1286,7 @@
           "refId": "F"
         },
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `event=download_redirect` |= `event_data_browser=chrome-ios` [$__range]))",
+          "expr": "sum(count_over_time({service_name=\"IPTViewer Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `event=download_redirect` |= `event_data_browser=chrome-ios` [$__range]))",
           "instant": true,
           "legendFormat": "chrome-ios",
           "queryType": "instant",
@@ -1294,7 +1294,7 @@
           "refId": "G"
         },
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `event=download_redirect` |= `event_data_browser=unknown` [$__range]))",
+          "expr": "sum(count_over_time({service_name=\"IPTViewer Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `event=download_redirect` |= `event_data_browser=unknown` [$__range]))",
           "instant": true,
           "legendFormat": "unknown",
           "queryType": "instant",
@@ -1424,7 +1424,7 @@
       },
       "targets": [
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `event=download_redirect` |= `event_data_issues=none` [$__range]))",
+          "expr": "sum(count_over_time({service_name=\"IPTViewer Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `event=download_redirect` |= `event_data_issues=none` [$__range]))",
           "instant": true,
           "legendFormat": "no issues",
           "queryType": "instant",
@@ -1432,7 +1432,7 @@
           "refId": "A"
         },
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `event=download_redirect` |= `event_data_in_iframe=true` [$__range]))",
+          "expr": "sum(count_over_time({service_name=\"IPTViewer Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `event=download_redirect` |= `event_data_in_iframe=true` [$__range]))",
           "instant": true,
           "legendFormat": "iframe",
           "queryType": "instant",
@@ -1440,7 +1440,7 @@
           "refId": "B"
         },
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `event=download_redirect` |= `not_android` [$__range]))",
+          "expr": "sum(count_over_time({service_name=\"IPTViewer Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `event=download_redirect` |= `not_android` [$__range]))",
           "instant": true,
           "legendFormat": "not android",
           "queryType": "instant",
@@ -1448,7 +1448,7 @@
           "refId": "C"
         },
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `event=download_redirect` |= `event_data_in_app_browser=` != `event_data_in_app_browser=none` [$__range]))",
+          "expr": "sum(count_over_time({service_name=\"IPTViewer Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `event=download_redirect` |= `event_data_in_app_browser=` != `event_data_in_app_browser=none` [$__range]))",
           "instant": true,
           "legendFormat": "in-app browser",
           "queryType": "instant",
@@ -1456,7 +1456,7 @@
           "refId": "D"
         },
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `event=download_redirect` |= `event_data_is_bot=true` [$__range]))",
+          "expr": "sum(count_over_time({service_name=\"IPTViewer Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `event=download_redirect` |= `event_data_is_bot=true` [$__range]))",
           "instant": true,
           "legendFormat": "bot",
           "queryType": "instant",
@@ -1464,7 +1464,7 @@
           "refId": "E"
         },
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `event=download_redirect` |= `geo_failed` [$__range]))",
+          "expr": "sum(count_over_time({service_name=\"IPTViewer Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `event=download_redirect` |= `geo_failed` [$__range]))",
           "instant": true,
           "legendFormat": "geo failed",
           "queryType": "instant",
@@ -1545,7 +1545,7 @@
       },
       "targets": [
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `event=download_redirect` |= `event_data_is_bot=false` [$__range]))",
+          "expr": "sum(count_over_time({service_name=\"IPTViewer Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `event=download_redirect` |= `event_data_is_bot=false` [$__range]))",
           "instant": true,
           "legendFormat": "real users",
           "queryType": "instant",
@@ -1553,7 +1553,7 @@
           "refId": "A"
         },
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `event=download_redirect` |= `event_data_is_bot=true` [$__range]))",
+          "expr": "sum(count_over_time({service_name=\"IPTViewer Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `event=download_redirect` |= `event_data_is_bot=true` [$__range]))",
           "instant": true,
           "legendFormat": "bots",
           "queryType": "instant",
@@ -1586,11 +1586,11 @@
       },
       "targets": [
         {
-          "expr": "{service_name=\"Lyrika Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `event=download_redirect` |= `webview_unknown`",
+          "expr": "{service_name=\"IPTViewer Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `event=download_redirect` |= `webview_unknown`",
           "refId": "A"
         },
         {
-          "expr": "{service_name=\"Lyrika Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `event=redirect_button_shown`",
+          "expr": "{service_name=\"IPTViewer Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `event=redirect_button_shown`",
           "refId": "B"
         }
       ],
@@ -1712,17 +1712,17 @@
       },
       "targets": [
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `download_redirect` [$__range]))",
+          "expr": "sum(count_over_time({service_name=\"IPTViewer Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `download_redirect` [$__range]))",
           "instant": true,
           "refId": "A"
         },
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `redirect_button_shown` [$__range]))",
+          "expr": "sum(count_over_time({service_name=\"IPTViewer Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `redirect_button_shown` [$__range]))",
           "instant": true,
           "refId": "B"
         },
         {
-          "expr": "sum(count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `redirect_manual_click` [$__range]))",
+          "expr": "sum(count_over_time({service_name=\"IPTViewer Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `redirect_manual_click` [$__range]))",
           "instant": true,
           "refId": "C"
         }
@@ -1750,7 +1750,7 @@
       },
       "targets": [
         {
-          "expr": "{service_name=\"Lyrika Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\" ",
+          "expr": "{service_name=\"IPTViewer Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\" ",
           "refId": "A"
         }
       ],
@@ -1809,7 +1809,7 @@
             "type": "loki",
             "uid": "grafanacloud-logs"
           },
-          "expr": "topk(20, sum by (referrer_root) (count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `download_redirect` | regexp `event_data_referrer_root=(?P<referrer_root>[^\" ]+)` [$__range])))",
+          "expr": "topk(20, sum by (referrer_root) (count_over_time({service_name=\"IPTViewer Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `download_redirect` | regexp `event_data_referrer_root=(?P<referrer_root>[^\" ]+)` [$__range])))",
           "instant": true,
           "legendFormat": "{{referrer_root}}",
           "range": false,
@@ -1893,7 +1893,7 @@
             "type": "loki",
             "uid": "grafanacloud-logs"
           },
-          "expr": "topk(20, sum by (referrer_domain) (count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `download_redirect` | regexp `event_data_referrer_domain=(?P<referrer_domain>[^\" ]+)` [$__range])))",
+          "expr": "topk(20, sum by (referrer_domain) (count_over_time({service_name=\"IPTViewer Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `download_redirect` | regexp `event_data_referrer_domain=(?P<referrer_domain>[^\" ]+)` [$__range])))",
           "instant": true,
           "legendFormat": "{{referrer_domain}}",
           "range": false,
@@ -1928,8 +1928,8 @@
   ],
   "schemaVersion": 39,
   "tags": [
-    "lyrika",
-    "installs"
+    "installs",
+    "iptviewer"
   ],
   "templating": {
     "list": [
@@ -1973,6 +1973,7 @@
           }
         ],
         "query": "app1,app2,app3,app4,app5",
+        "sort": 1,
         "type": "custom"
       }
     ]
@@ -1981,7 +1982,7 @@
     "from": "now-7d",
     "to": "now"
   },
-  "title": "Lyrika Installs v2",
-  "uid": "lyrika-installs-v2",
-  "version": 15
+  "title": "IPTViewer Installs",
+  "uid": "iptviewer-installs",
+  "version": 12
 }
