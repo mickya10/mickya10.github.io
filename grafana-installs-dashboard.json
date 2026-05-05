@@ -2060,36 +2060,40 @@
             "type": "loki",
             "uid": "grafanacloud-logs"
           },
-          "expr": "sum by (referrer_domain) (count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\" |= `download_redirect` | regexp `event_data_referrer_domain=(?P<referrer_domain>[^\" ]+)` [$__range]))",
+          "expr": "sort_desc(sum by (referrer_domain) (count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\" |= `download_redirect` | regexp `event_data_referrer_domain=(?P<referrer_domain>[^\" ]+)` [$__range])))",
           "format": "table",
-          "instant": false,
-          "legendFormat": "{{referrer_domain}}",
-          "range": true,
+          "instant": true,
+          "range": false,
           "refId": "A"
         }
       ],
       "title": "Referrer Domains \u2014 Full List",
       "transformations": [
         {
-          "id": "reduce",
-          "options": {
-            "includeTimeField": false,
-            "labelsToFields": true,
-            "mode": "reduceFields",
-            "reducers": [
-              "lastNotNull"
-            ]
-          }
-        },
-        {
           "id": "organize",
           "options": {
-            "excludeByName": {},
+            "excludeByName": {
+              "Time": true
+            },
             "indexByName": {
               "Value": 1,
               "referrer_domain": 0
             },
-            "renameByName": {}
+            "renameByName": {
+              "Value": "Events",
+              "referrer_domain": "Referrer"
+            }
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "sort": [
+              {
+                "desc": true,
+                "field": "Events"
+              }
+            ]
           }
         }
       ],
@@ -2153,5 +2157,5 @@
   },
   "title": "Lyrika Installs v2",
   "uid": "lyrika-installs-v2",
-  "version": 18
+  "version": 19
 }
