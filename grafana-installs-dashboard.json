@@ -1762,46 +1762,44 @@
         "type": "loki",
         "uid": "grafanacloud-logs"
       },
-      "description": "Top 20 sites users come from, rolled up to root domain (e.g. all *.facebook.com \u2192 facebook.com).",
+      "description": "Single roll-up: in-app webview > browser referrer root > (direct).",
       "fieldConfig": {
         "defaults": {
           "color": {
             "mode": "palette-classic"
-          },
-          "custom": {
-            "axisLabel": "",
-            "fillOpacity": 80,
-            "gradientMode": "none",
-            "lineWidth": 1
           }
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 9,
-        "w": 12,
+        "h": 8,
+        "w": 8,
         "x": 0,
         "y": 61
       },
       "id": 1,
       "options": {
-        "barRadius": 0,
-        "barWidth": 0.7,
-        "fullHighlight": false,
-        "groupWidth": 0.8,
+        "displayLabels": [],
         "legend": {
           "displayMode": "list",
           "placement": "bottom",
-          "showLegend": false
+          "showLegend": true,
+          "values": [
+            "value",
+            "percent"
+          ]
         },
-        "orientation": "horizontal",
-        "showValue": "always",
+        "pieType": "donut",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
         "tooltip": {
-          "mode": "single",
-          "sort": "none"
-        },
-        "xTickLabelRotation": 0,
-        "xTickLabelSpacing": 0
+          "mode": "single"
+        }
       },
       "targets": [
         {
@@ -1809,176 +1807,10 @@
             "type": "loki",
             "uid": "grafanacloud-logs"
           },
-          "expr": "topk(20, sum by (referrer_root) (count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `download_redirect` | regexp `event_data_referrer_root=(?P<referrer_root>[^\" ]+)` [$__range])))",
-          "instant": true,
-          "legendFormat": "{{referrer_root}}",
-          "range": false,
-          "refId": "A"
-        }
-      ],
-      "title": "Top Referrer Roots (eTLD+1)",
-      "transformations": [
-        {
-          "id": "reduce",
-          "options": {
-            "reducers": [
-              "lastNotNull"
-            ]
-          }
-        },
-        {
-          "id": "sortBy",
-          "options": {
-            "fields": {},
-            "sort": [
-              {
-                "desc": true,
-                "field": "Last *"
-              }
-            ]
-          }
-        }
-      ],
-      "type": "barchart"
-    },
-    {
-      "datasource": {
-        "type": "loki",
-        "uid": "grafanacloud-logs"
-      },
-      "description": "Top 20 referring hostnames including subdomain (e.g. l.facebook.com vs m.facebook.com).",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisLabel": "",
-            "fillOpacity": 80,
-            "gradientMode": "none",
-            "lineWidth": 1
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 9,
-        "w": 12,
-        "x": 12,
-        "y": 61
-      },
-      "id": 2,
-      "options": {
-        "barRadius": 0,
-        "barWidth": 0.7,
-        "fullHighlight": false,
-        "groupWidth": 0.8,
-        "legend": {
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": false
-        },
-        "orientation": "horizontal",
-        "showValue": "always",
-        "tooltip": {
-          "mode": "single",
-          "sort": "none"
-        },
-        "xTickLabelRotation": 0,
-        "xTickLabelSpacing": 0
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "grafanacloud-logs"
-          },
-          "expr": "topk(20, sum by (referrer_domain) (count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `download_redirect` | regexp `event_data_referrer_domain=(?P<referrer_domain>[^\" ]+)` [$__range])))",
-          "instant": true,
-          "legendFormat": "{{referrer_domain}}",
-          "range": false,
-          "refId": "A"
-        }
-      ],
-      "title": "Top Referrer Domains (full hostname)",
-      "transformations": [
-        {
-          "id": "reduce",
-          "options": {
-            "reducers": [
-              "lastNotNull"
-            ]
-          }
-        },
-        {
-          "id": "sortBy",
-          "options": {
-            "fields": {},
-            "sort": [
-              {
-                "desc": true,
-                "field": "Last *"
-              }
-            ]
-          }
-        }
-      ],
-      "type": "barchart"
-    },
-    {
-      "datasource": {
-        "type": "loki",
-        "uid": "grafanacloud-logs"
-      },
-      "description": "Single roll-up of where users came from. Priority: in-app webview > browser referrer (eTLD+1) > (direct). Excludes utm_source (we set it ourselves).",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisLabel": "",
-            "fillOpacity": 80,
-            "lineWidth": 1
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 10,
-        "w": 24,
-        "x": 0,
-        "y": 70
-      },
-      "id": 3,
-      "options": {
-        "barRadius": 0,
-        "barWidth": 0.7,
-        "fullHighlight": false,
-        "groupWidth": 0.8,
-        "legend": {
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": false
-        },
-        "orientation": "horizontal",
-        "showValue": "always",
-        "tooltip": {
-          "mode": "single",
-          "sort": "none"
-        },
-        "xTickLabelRotation": 0
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "grafanacloud-logs"
-          },
-          "expr": "topk(25, sum by (traffic_source) (count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\" |= `download_redirect` | regexp `event_data_traffic_source=(?P<traffic_source>[^\" ]+)` [$__range])))",
-          "instant": true,
+          "expr": "sum by (traffic_source) (count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `download_redirect` | regexp `event_data_traffic_source=(?P<traffic_source>[^\" ]+)` [$__range]))",
+          "instant": false,
           "legendFormat": "{{traffic_source}}",
-          "range": false,
+          "range": true,
           "refId": "A"
         }
       ],
@@ -1987,24 +1819,162 @@
         {
           "id": "reduce",
           "options": {
+            "includeTimeField": false,
+            "labelsToFields": false,
+            "mode": "reduceFields",
             "reducers": [
               "lastNotNull"
             ]
           }
+        }
+      ],
+      "type": "piechart"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "grafanacloud-logs"
+      },
+      "description": "Top sites users come from, rolled up to eTLD+1 (e.g. all *.facebook.com \u2192 facebook.com).",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
         },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 61
+      },
+      "id": 2,
+      "options": {
+        "displayLabels": [],
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true,
+          "values": [
+            "value",
+            "percent"
+          ]
+        },
+        "pieType": "donut",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
         {
-          "id": "sortBy",
+          "datasource": {
+            "type": "loki",
+            "uid": "grafanacloud-logs"
+          },
+          "expr": "sum by (referrer_root) (count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `download_redirect` | regexp `event_data_referrer_root=(?P<referrer_root>[^\" ]+)` [$__range]))",
+          "instant": false,
+          "legendFormat": "{{referrer_root}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Top Referrer Roots (eTLD+1)",
+      "transformations": [
+        {
+          "id": "reduce",
           "options": {
-            "sort": [
-              {
-                "desc": true,
-                "field": "Last *"
-              }
+            "includeTimeField": false,
+            "labelsToFields": false,
+            "mode": "reduceFields",
+            "reducers": [
+              "lastNotNull"
             ]
           }
         }
       ],
-      "type": "barchart"
+      "type": "piechart"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "grafanacloud-logs"
+      },
+      "description": "Full hostname (e.g. l.facebook.com vs m.facebook.com).",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 61
+      },
+      "id": 3,
+      "options": {
+        "displayLabels": [],
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true,
+          "values": [
+            "value",
+            "percent"
+          ]
+        },
+        "pieType": "donut",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "grafanacloud-logs"
+          },
+          "expr": "sum by (referrer_domain) (count_over_time({service_name=\"Lyrika Installs\", kind=\"event\"} |~ \"event_data_campaign=($campaign)( |$)\"  |= `download_redirect` | regexp `event_data_referrer_domain=(?P<referrer_domain>[^\" ]+)` [$__range]))",
+          "instant": false,
+          "legendFormat": "{{referrer_domain}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Top Referrer Domains (full hostname)",
+      "transformations": [
+        {
+          "id": "reduce",
+          "options": {
+            "includeTimeField": false,
+            "labelsToFields": false,
+            "mode": "reduceFields",
+            "reducers": [
+              "lastNotNull"
+            ]
+          }
+        }
+      ],
+      "type": "piechart"
     }
   ],
   "schemaVersion": 39,
@@ -2064,5 +2034,5 @@
   },
   "title": "Lyrika Installs v2",
   "uid": "lyrika-installs-v2",
-  "version": 16
+  "version": 17
 }
