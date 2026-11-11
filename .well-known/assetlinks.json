@@ -1,0 +1,22 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.masoft.lyrika",
+      "sha256_cert_fingerprints": [
+        "32:ED:19:45:DC:D8:50:95:58:13:C0:D5:53:84:50:D4:A3:42:14:E4:63:EF:44:5A:52:E6:3F:34:43:66:2A:80"
+      ]
+    }
+  },
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.masoft.lyrika.debug",
+      "sha256_cert_fingerprints": [
+        "C1:0E:2E:2D:36:35:36:74:3B:1B:86:E0:C9:82:70:7C:41:38:E3:5D:E5:67:5A:DC:F7:09:86:BA:26:D1:23:F9"
+      ]
+    }
+  }
+]
