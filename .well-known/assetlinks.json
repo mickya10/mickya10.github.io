@@ -5,7 +5,8 @@
       "namespace": "android_app",
       "package_name": "com.masoft.lyrika",
       "sha256_cert_fingerprints": [
-        "32:ED:19:45:DC:D8:50:95:58:13:C0:D5:53:84:50:D4:A3:42:14:E4:63:EF:44:5A:52:E6:3F:34:43:66:2A:80"
+        "32:ED:19:45:DC:D8:50:95:58:13:C0:D5:53:84:50:D4:A3:42:14:E4:63:EF:44:5A:52:E6:3F:34:43:66:2A:80",
+        "7D:AD:9B:5E:C1:31:A5:38:0C:66:46:92:50:AB:CA:24:16:F8:CE:4C:CC:6C:B1:58:5E:8A:A4:51:DF:E1:6B:E0"
       ]
     }
   },
