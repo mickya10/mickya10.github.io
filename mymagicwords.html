@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My Magic Words - Download</title>
+<meta name="description" content="My Magic Words: an English learning game for kids aged 5-9. No ads, plays offline.">
+<meta property="og:title" content="My Magic Words - English for kids 5-9">
+<meta property="og:description" content="Kids hear a word and tap the right thing. No ads, plays offline. On Google Play.">
+<meta property="og:image" content="https://mickya10.github.io/mymagicwords-icon.png">
+<link rel="icon" href="mymagicwords-icon.png">
+<style>
+  body { margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; color: #1e1b4b;
+    background: linear-gradient(180deg, #bfe3ff 0%, #fff7ed 55%, #dcfce7 100%); }
+  .msg { text-align: center; padding: 24px 16px; max-width: 420px; }
+  .icon { width: 96px; height: 96px; border-radius: 22px; box-shadow: 0 6px 16px rgba(0,0,0,.18); }
+  h1 { font-size: 2rem; margin: 14px 0 4px; color: #4f46e5; }
+  .tag { margin: 0 0 14px; font-weight: 600; opacity: .8; }
+  #status { color: #4b5563; margin-top: 8px; }
+  .spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid #c7d2fe; border-top-color: #4f46e5; border-radius: 50%; animation: spin .8s linear infinite; margin-right: 8px; vertical-align: middle; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .btn { display: inline-block; margin-top: 18px; background: #4f46e5; color: #fff; padding: 14px 30px; border-radius: 14px; text-decoration: none; font-weight: 700; font-size: 1.05rem; box-shadow: 0 4px 0 #312e81; }
+  .note { font-size: .9rem; color: #6b7280; margin-top: 14px; }
+</style>
+</head>
+<body>
+<div class="msg">
+  <img class="icon" src="mymagicwords-icon.png" alt="My Magic Words">
+  <h1>My Magic Words</h1>
+  <p class="tag" id="tag">English for kids 5-9 · No ads · Plays offline</p>
+  <p id="status"><span class="spinner"></span><span id="status-text">Opening Google Play...</span></p>
+  <a id="fallback" class="btn" style="display:none" href="https://play.google.com/store/apps/details?id=com.masoft.mymagicwords">Get it on Google Play</a>
+  <p class="note" id="note" hidden>An app for Android phones and tablets.</p>
+</div>
+<script>
+(function () {
+  // A download link for ads and shares: counts the visit (through the Cloudflare Worker in the app repo,
+  // cloudflare-worker/site-events.js, as "MyMagicWords Site"; the edge adds the country), then opens Google Play.
+  var EVENTS_URL = "https://mmw-site-events.miav55555.workers.dev/";
+  var SERVICE = "MyMagicWords Site";
+  var PAGE_VERSION = "dl-1";
+  var PACKAGE = "com.masoft.mymagicwords";
+  var params = new URLSearchParams(location.search);
+  var ua = navigator.userAgent || "";
+  var ref = document.referrer || "";
+  var source = params.get("utm_source") || (/taboola/i.test(ref) ? "taboola" : ref ? "referral" : "direct");
+  var utm = [];
+  ["utm_source", "utm_medium", "utm_campaign"].forEach(function (k) { if (params.get(k)) utm.push(k + "=" + encodeURIComponent(params.get(k))); });
+  var playWeb = "https://play.google.com/store/apps/details?id=" + PACKAGE + (utm.length ? "&referrer=" + encodeURIComponent(utm.join("&")) : "");
+  var playApp = "market://details?id=" + PACKAGE + (utm.length ? "&referrer=" + encodeURIComponent(utm.join("&")) : "");
+  var platform = /Android/i.test(ua) ? "android" : /iPhone|iPad|iPod/i.test(ua) ? "ios" : "desktop";
+  var browser = /CriOS/i.test(ua) ? "chrome-ios" : /Chrome/i.test(ua) && !/Edg/i.test(ua) ? "chrome" : /Safari/i.test(ua) && !/Chrome/i.test(ua) ? "safari" : /Firefox|FxiOS/i.test(ua) ? "firefox" : /Edg/i.test(ua) ? "edge" : "other";
+  var inApp = /FBAN|FBAV/i.test(ua) ? "facebook" : /Instagram/i.test(ua) ? "instagram" : /TikTok/i.test(ua) ? "tiktok" : /WhatsApp/i.test(ua) ? "whatsapp" : /Telegram/i.test(ua) ? "telegram" : /Taboola/i.test(ua) ? "taboola" : /GSA\//i.test(ua) ? "google_app" : /SamsungBrowser/i.test(ua) ? "samsung_browser" : /\bwv\b/.test(ua) ? (/taboola/i.test(ref) || source === "taboola" ? "taboola_webview" : "webview_unknown") : "none";
+  var isBot = /bot|crawl|spider|slurp|facebookexternalhit|Twitterbot|Googlebot|bingbot|Applebot|WhatsApp|TelegramBot|LinkedInBot|Pinterestbot/i.test(ua) ? "true" : "false";
+  var inIframe = "false";
+  try { inIframe = window.self !== window.top ? "true" : "false"; } catch (e) { inIframe = "true"; }
+  // Inside another app's browser on Android, the Play Store app opens straight away (the web page may not).
+  var useApp = platform === "android" && inApp !== "none" && inApp !== "samsung_browser";
+  var target = useApp ? playApp : playWeb;
+  var es = /^es\b/i.test(navigator.language || "") || params.get("lang") === "es";
+  if (es) {
+    document.documentElement.lang = "es";
+    document.getElementById("tag").textContent = "Inglés para niños de 5 a 9 · Sin anuncios · Sin internet";
+    document.getElementById("status-text").textContent = "Abriendo Google Play...";
+    document.getElementById("fallback").textContent = "Descargar en Google Play";
+    document.getElementById("note").textContent = "Una app para teléfonos y tabletas Android.";
+  }
+  var base = { source: source, medium: params.get("utm_medium") || "", campaign: params.get("utm_campaign") || "", referrer: ref.slice(0, 200), platform: platform, browser: browser, in_app_browser: inApp, in_iframe: inIframe, is_bot: isBot, lang: (navigator.language || "").slice(0, 8), flow: useApp ? "market" : "web" };
+  function esc(v) { var s = String(v); return /[ ="]/.test(s) ? '"' + s.replace(/\\/g, "\\\\").replace(/"/g, '\\"') + '"' : (s || '""'); }
+  function send(name) {
+    var parts = ["event=" + esc(name), "app_version=" + esc(PAGE_VERSION)];
+    for (var k in base) parts.push("event_data_" + k + "=" + esc(base[k]));
+    var payload = { streams: [{ stream: { service_name: SERVICE, deployment_environment: "production", kind: "event" }, values: [[String(Date.now()) + "000000", parts.join(" ")]] }] };
+    try { return fetch(EVENTS_URL, { method: "POST", headers: { "Content-Type": "text/plain" }, body: JSON.stringify(payload), keepalive: true }).catch(function () {}); } catch (e) { return Promise.resolve(); }
+  }
+  var btn = document.getElementById("fallback");
+  btn.href = target;
+  btn.addEventListener("click", function () { send("download_manual_click"); });
+  function showButton() {
+    document.getElementById("status").hidden = true;
+    btn.style.display = "inline-block";
+    if (platform !== "android") document.getElementById("note").hidden = false;
+  }
+  var sent = send("download_view");
+  // Bots and computers get the button (no jump to a store they cannot use); phones go straight to Play.
+  if (isBot === "true" || platform !== "android") return showButton();
+  var go = function () { location.href = target; };
+  Promise.race([sent, new Promise(function (r) { setTimeout(r, 1200); })]).then(go, go);
+  setTimeout(function () {
+    if (!document.hidden) { send("download_button_shown"); showButton(); }
+  }, 4000);
+})();
+</script>
+</body>
+</html>
