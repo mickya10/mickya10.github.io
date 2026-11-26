@@ -38,7 +38,7 @@
   // cloudflare-worker/site-events.js, as "MyMagicWords Site"; the edge adds the country), then opens Google Play.
   var EVENTS_URL = "https://mmw-site-events.miav55555.workers.dev/";
   var SERVICE = "MyMagicWords Site";
-  var PAGE_VERSION = "dl-1";
+  var PAGE_VERSION = "dl-2";
   var PACKAGE = "com.masoft.mymagicwords";
   var params = new URLSearchParams(location.search);
   var ua = navigator.userAgent || "";
@@ -47,7 +47,10 @@
   var utm = [];
   ["utm_source", "utm_medium", "utm_campaign"].forEach(function (k) { if (params.get(k)) utm.push(k + "=" + encodeURIComponent(params.get(k))); });
   var playWeb = "https://play.google.com/store/apps/details?id=" + PACKAGE + (utm.length ? "&referrer=" + encodeURIComponent(utm.join("&")) : "");
-  var playApp = "market://details?id=" + PACKAGE + (utm.length ? "&referrer=" + encodeURIComponent(utm.join("&")) : "");
+  // In another app's browser a plain market:// link is often blocked (Nov 26: 177 of 213 Taboola in-app visits never
+  // reached Play). An intent:// link to the Play Store app, with the web store page as its fallback, is what Android
+  // in-app browsers let through, best from a tap.
+  var playApp = "intent://details?id=" + PACKAGE + (utm.length ? "&referrer=" + encodeURIComponent(utm.join("&")) : "") + "#Intent;scheme=market;package=com.android.vending;S.browser_fallback_url=" + encodeURIComponent(playWeb) + ";end";
   var platform = /Android/i.test(ua) ? "android" : /iPhone|iPad|iPod/i.test(ua) ? "ios" : "desktop";
   var browser = /CriOS/i.test(ua) ? "chrome-ios" : /Chrome/i.test(ua) && !/Edg/i.test(ua) ? "chrome" : /Safari/i.test(ua) && !/Chrome/i.test(ua) ? "safari" : /Firefox|FxiOS/i.test(ua) ? "firefox" : /Edg/i.test(ua) ? "edge" : "other";
   var inApp = /FBAN|FBAV/i.test(ua) ? "facebook" : /Instagram/i.test(ua) ? "instagram" : /TikTok/i.test(ua) ? "tiktok" : /WhatsApp/i.test(ua) ? "whatsapp" : /Telegram/i.test(ua) ? "telegram" : /Taboola/i.test(ua) ? "taboola" : /GSA\//i.test(ua) ? "google_app" : /SamsungBrowser/i.test(ua) ? "samsung_browser" : /\bwv\b/.test(ua) ? (/taboola/i.test(ref) || source === "taboola" ? "taboola_webview" : "webview_unknown") : "none";
@@ -85,6 +88,8 @@
   // Bots and computers get the button (no jump to a store they cannot use); phones go straight to Play.
   if (isBot === "true" || platform !== "android") return showButton();
   var go = function () { location.href = target; };
+  // In an in-app browser the button shows at once (a tap is what lets the Play Store open); it still tries by itself.
+  if (useApp) showButton();
   Promise.race([sent, new Promise(function (r) { setTimeout(r, 1200); })]).then(go, go);
   setTimeout(function () {
     if (!document.hidden) { send("download_button_shown"); showButton(); }
