@@ -38,7 +38,7 @@
   // cloudflare-worker/site-events.js, as "MyMagicWords Site"; the edge adds the country), then opens Google Play.
   var EVENTS_URL = "https://mmw-site-events.miav55555.workers.dev/";
   var SERVICE = "MyMagicWords Site";
-  var PAGE_VERSION = "dl-2";
+  var PAGE_VERSION = "dl-3";
   var PACKAGE = "com.masoft.mymagicwords";
   var params = new URLSearchParams(location.search);
   var ua = navigator.userAgent || "";
@@ -47,19 +47,15 @@
   var utm = [];
   ["utm_source", "utm_medium", "utm_campaign"].forEach(function (k) { if (params.get(k)) utm.push(k + "=" + encodeURIComponent(params.get(k))); });
   var playWeb = "https://play.google.com/store/apps/details?id=" + PACKAGE + (utm.length ? "&referrer=" + encodeURIComponent(utm.join("&")) : "");
-  // In another app's browser a plain market:// link is often blocked (Nov 26: 177 of 213 Taboola in-app visits never
-  // reached Play). An intent:// link to the Play Store app, with the web store page as its fallback, is what Android
-  // in-app browsers let through, best from a tap.
-  var playApp = "intent://details?id=" + PACKAGE + (utm.length ? "&referrer=" + encodeURIComponent(utm.join("&")) : "") + "#Intent;scheme=market;package=com.android.vending;S.browser_fallback_url=" + encodeURIComponent(playWeb) + ";end";
   var platform = /Android/i.test(ua) ? "android" : /iPhone|iPad|iPod/i.test(ua) ? "ios" : "desktop";
   var browser = /CriOS/i.test(ua) ? "chrome-ios" : /Chrome/i.test(ua) && !/Edg/i.test(ua) ? "chrome" : /Safari/i.test(ua) && !/Chrome/i.test(ua) ? "safari" : /Firefox|FxiOS/i.test(ua) ? "firefox" : /Edg/i.test(ua) ? "edge" : "other";
   var inApp = /FBAN|FBAV/i.test(ua) ? "facebook" : /Instagram/i.test(ua) ? "instagram" : /TikTok/i.test(ua) ? "tiktok" : /WhatsApp/i.test(ua) ? "whatsapp" : /Telegram/i.test(ua) ? "telegram" : /Taboola/i.test(ua) ? "taboola" : /GSA\//i.test(ua) ? "google_app" : /SamsungBrowser/i.test(ua) ? "samsung_browser" : /\bwv\b/.test(ua) ? (/taboola/i.test(ref) || source === "taboola" ? "taboola_webview" : "webview_unknown") : "none";
   var isBot = /bot|crawl|spider|slurp|facebookexternalhit|Twitterbot|Googlebot|bingbot|Applebot|WhatsApp|TelegramBot|LinkedInBot|Pinterestbot/i.test(ua) ? "true" : "false";
   var inIframe = "false";
   try { inIframe = window.self !== window.top ? "true" : "false"; } catch (e) { inIframe = "true"; }
-  // Inside another app's browser on Android, the Play Store app opens straight away (the web page may not).
-  var useApp = platform === "android" && inApp !== "none" && inApp !== "samsung_browser";
-  var target = useApp ? playApp : playWeb;
+  // The plain Play web address for everyone, as Lyrika's page does: in Taboola's in-app browser about two thirds of
+  // Lyrika's visitors reached Play by themselves (Nov 2026), against under a fifth with intent:// or market:// here.
+  var target = playWeb;
   var es = /^es\b/i.test(navigator.language || "") || params.get("lang") === "es";
   if (es) {
     document.documentElement.lang = "es";
@@ -68,7 +64,7 @@
     document.getElementById("fallback").textContent = "Descargar en Google Play";
     document.getElementById("note").textContent = "Una app para teléfonos y tabletas Android.";
   }
-  var base = { source: source, medium: params.get("utm_medium") || "", campaign: params.get("utm_campaign") || "", referrer: ref.slice(0, 200), platform: platform, browser: browser, in_app_browser: inApp, in_iframe: inIframe, is_bot: isBot, lang: (navigator.language || "").slice(0, 8), flow: useApp ? "market" : "web" };
+  var base = { source: source, medium: params.get("utm_medium") || "", campaign: params.get("utm_campaign") || "", referrer: ref.slice(0, 200), platform: platform, browser: browser, in_app_browser: inApp, in_iframe: inIframe, is_bot: isBot, lang: (navigator.language || "").slice(0, 8), flow: "web" };
   function esc(v) { var s = String(v); return /[ ="]/.test(s) ? '"' + s.replace(/\\/g, "\\\\").replace(/"/g, '\\"') + '"' : (s || '""'); }
   function send(name) {
     var parts = ["event=" + esc(name), "app_version=" + esc(PAGE_VERSION)];
@@ -85,11 +81,9 @@
     if (platform !== "android") document.getElementById("note").hidden = false;
   }
   var sent = send("download_view");
-  // Bots and computers get the button (no jump to a store they cannot use); phones go straight to Play.
-  if (isBot === "true" || platform !== "android") return showButton();
+  // Bots get the button; everyone else goes straight to Play (a computer sees the store page and can send it to a phone).
+  if (isBot === "true") return showButton();
   var go = function () { location.href = target; };
-  // In an in-app browser the button shows at once (a tap is what lets the Play Store open); it still tries by itself.
-  if (useApp) showButton();
   Promise.race([sent, new Promise(function (r) { setTimeout(r, 1200); })]).then(go, go);
   setTimeout(function () {
     if (!document.hidden) { send("download_button_shown"); showButton(); }
